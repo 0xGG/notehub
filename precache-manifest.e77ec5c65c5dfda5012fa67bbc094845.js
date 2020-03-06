@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "9c94f9d8cc0f4c73bad79d1b8957f23d",
+    "revision": "45b98fc342ec8c5be732463daaaae747",
     "url": "/notehub/index.html"
   },
   {
