@@ -6,7 +6,7 @@ An experimental markdown note taking pwa that supports offline editing as well a
 
 This project will get integrated with crossnote project in the future.
 
-![Screenshot from 2020-03-06 17-34-21.png](https://i.loli.net/2020/03/06/eRQbTPpW9jyhKVr.png)
+![Screenshot from 2020-03-06 19-23-58](https://user-images.githubusercontent.com/1908863/76087772-c8de7280-5ff1-11ea-96c5-949e98e933fb.png)
 
 ## License
 
