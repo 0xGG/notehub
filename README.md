@@ -10,4 +10,4 @@ This project will get integerted with crossnote project in the future.
 
 ## License
 
-GNU GENERAL PUBLIC LICENSE
+AGPL3

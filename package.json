@@ -1,6 +1,7 @@
 {
   "name": "notehub",
   "version": "0.1.0",
+  "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@dicebear/avatars": "^4.0.2",
     "@dicebear/avatars-female-sprites": "^4.0.2",
@@ -75,7 +76,7 @@
     "unstated-next": "^1.1.0",
     "urql": "^1.9.0",
     "uuid": "^7.0.1",
-    "vickymd": "0.1.1"
+    "vickymd": "0.1.2"
   },
   "scripts": {
     "start": "react-scripts start",
