@@ -39,6 +39,11 @@ body {
   height: 0;
 }
 
+.CodeMirror-hints {
+  font-size: 1rem !important;
+  z-index: 2000 !important;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;

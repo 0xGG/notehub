@@ -194,6 +194,7 @@ export const zhCN = {
     "editor/save-failure": "保存失败",
     "editor/saved": "已保存",
     "editor/update-note-failure": "更新笔记失败",
+    "editor/placeholder": "#  你好 😀 输入 '/' 打开命令",
 
     // * NoteControl
     "editor/note-control/allow-readers-to-suggest-note-tags":
@@ -254,6 +255,9 @@ export const zhCN = {
     "editor/toolbar/insert-header-1": "插入一级标题",
     "editor/toolbar/insert-header-2": "插入二级标题",
     "editor/toolbar/insert-header-3": "插入三级标题",
+    "editor/toolbar/insert-header-4": "插入四级标题",
+    "editor/toolbar/insert-header-5": "插入五级标题",
+    "editor/toolbar/insert-header-6": "插入六级标题",
     "editor/toolbar/bold": "粗体",
     "editor/toolbar/italic": "斜体",
     "editor/toolbar/strikethrough": "删除线",

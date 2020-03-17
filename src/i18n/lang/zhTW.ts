@@ -194,6 +194,7 @@ export const zhTW = {
     "editor/save-failure": "保存失敗",
     "editor/saved": "已保存",
     "editor/update-note-failure": "更新筆記失敗",
+    "editor/placeholder": "#  你好 😀 輸入 '/' 打開命令",
 
     // * NoteControl
     "editor/note-control/allow-readers-to-suggest-note-tags":
@@ -254,6 +255,9 @@ export const zhTW = {
     "editor/toolbar/insert-header-1": "插入一級標題",
     "editor/toolbar/insert-header-2": "插入二級標題",
     "editor/toolbar/insert-header-3": "插入三級標題",
+    "editor/toolbar/insert-header-4": "插入四級標題",
+    "editor/toolbar/insert-header-5": "插入五級標題",
+    "editor/toolbar/insert-header-6": "插入六級標題",
     "editor/toolbar/bold": "粗體",
     "editor/toolbar/italic": "斜體",
     "editor/toolbar/strikethrough": "刪除線",

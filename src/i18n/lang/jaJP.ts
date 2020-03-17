@@ -199,6 +199,7 @@ export const jaJP = {
     "editor/save-failure": "保存失敗",
     "editor/saved": "保存しました",
     "editor/update-note-failure": "ノートの更新に失敗しました",
+    "editor/placeholder": "#  こんにちは 😀 コマンドに 「/」 と入力します。",
 
     // * NoteControl
     "editor/note-control/allow-readers-to-suggest-note-tags":
@@ -264,8 +265,11 @@ export const jaJP = {
     "editor/toolbar/insert-kanban": "かんばんを挿入",
     "editor/toolbar/insert-abc-notation": "ABC notation を挿入",
     "editor/toolbar/insert-header-1": "第1レベルの見出しを挿入",
-    "editor/toolbar/insert-header-2": "セカンダリタイトルを挿入",
+    "editor/toolbar/insert-header-2": "第2レベルの見出しを挿入",
     "editor/toolbar/insert-header-3": "第3レベルの見出しを挿入",
+    "editor/toolbar/insert-header-4": "第4レベルの見出しを挿入",
+    "editor/toolbar/insert-header-5": "第5レベルの見出しを挿入",
+    "editor/toolbar/insert-header-6": "第6レベルの見出しを挿入",
     "editor/toolbar/bold": "太字",
     "editor/toolbar/italic": "斜体",
     "editor/toolbar/strikethrough": "取り消し 線",

@@ -194,6 +194,7 @@ export const enUS = {
     "editor/save-failure": "Failed to save",
     "editor/saved": "Saved",
     "editor/update-note-failure": "Failed to update note",
+    "editor/placeholder": "#  Hi 😀 Type '/' for commands",
 
     // * NoteControl
     "editor/note-control/allow-readers-to-suggest-note-tags":
@@ -255,6 +256,9 @@ export const enUS = {
     "editor/toolbar/insert-header-1": "Insert header 1",
     "editor/toolbar/insert-header-2": "Insert header 2",
     "editor/toolbar/insert-header-3": "Insert header 3",
+    "editor/toolbar/insert-header-4": "Insert header 4",
+    "editor/toolbar/insert-header-5": "Insert header 5",
+    "editor/toolbar/insert-header-6": "Insert header 6",
     "editor/toolbar/bold": "Bold",
     "editor/toolbar/italic": "Italic",
     "editor/toolbar/strikethrough": "Strikethrough",
