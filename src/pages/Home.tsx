@@ -26,6 +26,7 @@ import AddNotebookDialog from "../components/AddNotebookDialog";
 import NotebookTreeView from "../components/NotebookTreeView";
 
 const drawerWidth = 200;
+const notesPanelWidth = 350;
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     page: {
@@ -117,7 +118,7 @@ const useStyles = makeStyles((theme: Theme) =>
       backgroundColor: "#eee"
     },
     notesPanel: {
-      width: "350px",
+      width: `${notesPanelWidth}px`,
       maxWidth: "100%",
       height: "100%",
       [theme.breakpoints.down("xs")]: {
@@ -125,10 +126,17 @@ const useStyles = makeStyles((theme: Theme) =>
       }
     },
     editorPanel: {
-      flex: "1",
+      // flex: "1" // Flex has overflow issue
+      width: `calc(100% - ${notesPanelWidth}px)`,
+      position: "absolute",
+      left: `calc(${notesPanelWidth}px)`,
+      height: "100%",
+      [theme.breakpoints.down("md")]: {
+        width: `calc(100% - ${notesPanelWidth}px)`,
+        left: `${notesPanelWidth}px`
+      },
       [theme.breakpoints.down("xs")]: {
         display: "none",
-        position: "absolute",
         top: "0",
         left: "0",
         width: "100%",
