@@ -41,7 +41,8 @@ const useStyles = makeStyles((theme: Theme) =>
       borderBottom: "1px solid #ededed"
     },
     header: {
-      marginBottom: theme.spacing(2)
+      marginBottom: theme.spacing(2),
+      wordBreak: "break-all"
     },
     summary: {
       color: theme.palette.text.secondary,

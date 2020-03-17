@@ -1,12 +1,12 @@
-import { FSModule } from "browserfs/dist/node/core/FS";
 import * as git from "isomorphic-git";
 import http from "isomorphic-git/http/web";
 import * as path from "path";
 import PouchDB from "pouchdb";
 import PouchdbFind from "pouchdb-find";
 import { randomID } from "../utilities/utils";
-import Stats from "browserfs/dist/node/core/node_fs_stats";
 import { getHeaderFromMarkdown } from "../utilities/note";
+import { Stats } from "fs";
+import * as matter from "gray-matter";
 
 export interface Notebook {
   _id: string;
@@ -51,7 +51,7 @@ export interface NotebookConfig {
 }
 
 interface CrossnoteConstructorProps {
-  fs: FSModule;
+  fs: any;
 }
 interface CloneNotebookArgs {
   name?: string;
@@ -91,7 +91,7 @@ export interface PullNotebookArgs {
 }
 
 export default class Crossnote {
-  private fs: FSModule;
+  private fs: any;
 
   private readFile: (path: string) => Promise<string>;
   private writeFile: (path: string, data: string) => Promise<void>;
@@ -121,18 +121,22 @@ export default class Crossnote {
   private setUpFSMethods() {
     this.readFile = (path: string) => {
       return new Promise((resolve, reject) => {
-        this.fs.readFile(path, (error, data) => {
-          if (error) {
-            return reject(error);
-          } else {
-            return resolve(data.toString());
+        this.fs.readFile(
+          path,
+          { encoding: "utf8" },
+          (error: Error, data: string) => {
+            if (error) {
+              return reject(error);
+            } else {
+              return resolve(data.toString());
+            }
           }
-        });
+        );
       });
     };
     this.writeFile = (path: string, data: string) => {
       return new Promise((resolve, reject) => {
-        this.fs.writeFile(path, data, { encoding: "utf8" }, error => {
+        this.fs.writeFile(path, data, { encoding: "utf8" }, (error: Error) => {
           if (error) {
             return reject(error);
           } else {
@@ -143,7 +147,7 @@ export default class Crossnote {
     };
     this.readdir = (path: string) => {
       return new Promise((resolve, reject) => {
-        this.fs.readdir(path, (error, files) => {
+        this.fs.readdir(path, (error: Error, files: string[]) => {
           if (error) {
             return reject(error);
           } else {
@@ -154,7 +158,7 @@ export default class Crossnote {
     };
     this.unlink = (path: string) => {
       return new Promise((resolve, reject) => {
-        this.fs.unlink(path, error => {
+        this.fs.unlink(path, (error: Error) => {
           if (error) {
             return reject(error);
           } else {
@@ -165,7 +169,7 @@ export default class Crossnote {
     };
     this.stats = (path: string) => {
       return new Promise((resolve, reject) => {
-        this.fs.stat(path, (error, stats) => {
+        this.fs.stat(path, (error: Error, stats: Stats) => {
           if (error) {
             return reject(error);
           } else {
@@ -176,7 +180,7 @@ export default class Crossnote {
     };
     this.mkdir = (path: string) => {
       return new Promise((resolve, reject) => {
-        this.fs.mkdir(path, "0777", error => {
+        this.fs.mkdir(path, "0777", (error: Error) => {
           if (error) {
             return reject(error);
           } else {
@@ -187,14 +191,18 @@ export default class Crossnote {
     };
     this.exists = (path: string) => {
       return new Promise((resolve, reject) => {
-        this.fs.exists(path, exists => {
-          return resolve(exists);
+        this.fs.stat(path, (error: Error, stats: Stats) => {
+          if (error) {
+            return resolve(false);
+          } else {
+            return resolve(true);
+          }
         });
       });
     };
     this.rename = (oldPath: string, newPath: string) => {
       return new Promise((resolve, reject) => {
-        this.fs.rename(oldPath, newPath, error => {
+        this.fs.rename(oldPath, newPath, (error: Error) => {
           if (error) {
             return reject(error);
           } else {
@@ -206,7 +214,7 @@ export default class Crossnote {
 
     const rmdir = (path: string) => {
       return new Promise((resolve, reject) => {
-        this.fs.rmdir(path, error => {
+        this.fs.rmdir(path, (error: Error) => {
           if (error) {
             return reject(error);
           } else {
@@ -608,29 +616,15 @@ export default class Crossnote {
 
       // Read the noteConfig, which is like <!-- note {...} --> at the end of the markdown file
       let noteConfig: NoteConfig = {
-        id: "",
-        createdAt: stats.mtime,
-        modifiedAt: stats.mtime,
+        // id: "",
+        createdAt: new Date(stats.ctimeMs),
+        modifiedAt: new Date(stats.mtimeMs),
         tags: []
       };
-      const lines = markdown
-        .trim()
-        .split("\n")
-        .filter(x => x.length > 0);
-      const lastLine = lines[lines.length - 1].trim();
-      if (lastLine.match(/^<!--\s*note\s+/)) {
-        markdown = lines.slice(0, lines.length - 1).join("\n");
-        const configStr = lines[lines.length - 1]
-          .replace(/^<!--\s*note\s+/, "")
-          .replace(/\s*-->$/, "");
-        let config: any = {};
-        try {
-          config = JSON.parse(configStr);
-          config.modifiedAt = new Date(config.modifiedAt || stats.mtime);
-          config.createdAt = new Date(config.createdAt || stats.mtime);
-        } catch (error) {}
-        noteConfig = Object.assign(noteConfig, config);
-      }
+
+      const data = matter.default(markdown);
+      noteConfig = Object.assign(noteConfig, data.data["note"] || {});
+      markdown = data.content;
 
       // Create note
       const note: Note = {
@@ -692,10 +686,17 @@ export default class Crossnote {
     noteConfig: NoteConfig
   ) {
     noteConfig.modifiedAt = new Date();
-    await this.writeFile(
-      path.resolve(notebook.dir, filePath),
-      markdown + `\n\n<!-- note ${JSON.stringify(noteConfig)}-->`
-    );
+    try {
+      const data = matter.default(markdown);
+      markdown = matter.default.stringify(
+        markdown,
+        Object.assign(data.data || {}, { note: noteConfig })
+      );
+    } catch (error) {
+      return;
+    }
+
+    await this.writeFile(path.resolve(notebook.dir, filePath), markdown);
     await git.add({
       fs: this.fs,
       dir: notebook.dir,

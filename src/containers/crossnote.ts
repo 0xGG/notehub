@@ -36,7 +36,9 @@ function useCrossnoteContainer(initialState: InitialState) {
   const [isAddingNotebook, setIsAddingNotebook] = useState<boolean>(false);
   const [isPushingNotebook, setIsPushingNotebook] = useState<boolean>(false);
   const [isPullingNotebook, setIsPullingNotebook] = useState<boolean>(false);
-  const [displayMobileEditor, setDisplayMobileEditor] = useState<boolean>(true);
+  const [displayMobileEditor, setDisplayMobileEditor] = useState<boolean>(
+    false
+  ); // For mobile device without any initial data, set to `true` will create empty white page.
   const updateNoteMarkdown = useCallback(
     (note: Note, markdown: string, callback?: (status: string) => void) => {
       setNotes(notes =>
@@ -357,9 +359,9 @@ function useCrossnoteContainer(initialState: InitialState) {
           dir: "./",
           includeSubdirectories: true
         })
-      ).sort(
-        (a, b) => b.config.modifiedAt.getTime() - a.config.modifiedAt.getTime()
-      );
+      ).sort((a, b) => {
+        return b.config.modifiedAt.getTime() - a.config.modifiedAt.getTime();
+      });
       setNotebookNotes(notes);
       setNotebookDirectories(
         await crossnote.getNotebookDirectoriesFromNotes(notes)

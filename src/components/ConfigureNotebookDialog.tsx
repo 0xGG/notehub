@@ -40,9 +40,6 @@ export default function ConfigureNotebookDialog(props: Props) {
   const [clickDeleteCount, setClickDeleteCount] = useState<number>(
     MaxClickDeleteCount
   );
-  const [rememberCredentialsChecked, setRememberCredentialsChecked] = useState<
-    boolean
-  >(false);
 
   useEffect(() => {
     const notebook = props.notebook;
@@ -150,24 +147,6 @@ export default function ConfigureNotebookDialog(props: Props) {
                 value={gitPassword}
                 onChange={event => setGitPassword(event.target.value)}
               ></TextField>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={rememberCredentialsChecked}
-                    onChange={() =>
-                      setRememberCredentialsChecked(!rememberCredentialsChecked)
-                    }
-                    value={rememberCredentialsChecked}
-                  />
-                }
-                label={
-                  <Typography>
-                    {"Remember credentials" +
-                      " " +
-                      (rememberCredentialsChecked ? "(stored locally)" : "")}
-                  </Typography>
-                }
-              />
               <TextField
                 label={"cors proxy"}
                 placeholder={"https://cors.isomorphic-git.org"}

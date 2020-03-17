@@ -18,7 +18,7 @@ import {
   ButtonGroup,
   IconButton
 } from "@material-ui/core";
-import { Editor as CodeMirrorEditor } from "codemirror";
+import { Editor as CodeMirrorEditor, EditorChangeLinkedList } from "codemirror";
 import {
   RenameBox,
   Delete,
@@ -35,6 +35,7 @@ import {
 import { renderPreview } from "vickymd/preview";
 import PushNotebookDialog from "./PushNotebookDialog";
 import Noty from "noty";
+import { formatDistance } from "date-fns";
 
 const VickyMD = require("vickymd");
 
@@ -146,6 +147,11 @@ export enum EditorMode {
 interface CursorPosition {
   ch: number;
   line: number;
+}
+interface TimerText {
+  text: string;
+  line: number;
+  date: Date;
 }
 interface Props {
   note: Note;
@@ -333,6 +339,213 @@ export default function Editor(props: Props) {
     }
   }, [editorMode, editor, previewElement, note]);
 
+  useEffect(() => {
+    if (!editor) return;
+    const onChangeHandler = (
+      instance: CodeMirrorEditor,
+      changeObject: EditorChangeLinkedList
+    ) => {
+      // Check commands
+      if (changeObject.text.length === 1 && changeObject.text[0] === "/") {
+        editor.showHint({
+          closeOnUnfocus: false,
+          completeSingle: false,
+          hint: () => {
+            const cursor = editor.getCursor();
+            const token = editor.getTokenAt(cursor);
+            const start = token.string.lastIndexOf("/");
+            const line = cursor.line;
+            const end: number = cursor.ch;
+            const currentWord: string = token.string.slice(start + 1, end);
+
+            const commands = [
+              {
+                text: "# ",
+                displayText: `/h1 - ${t("editor/toolbar/insert-header-1")}`
+              },
+              {
+                text: "## ",
+                displayText: `/h2 - ${t("editor/toolbar/insert-header-2")}`
+              },
+              {
+                text: "### ",
+                displayText: `/h3 - ${t("editor/toolbar/insert-header-3")}`
+              },
+              {
+                text: "#### ",
+                displayText: `/h4 - ${t("editor/toolbar/insert-header-4")}`
+              },
+              {
+                text: "##### ",
+                displayText: `/h5 - ${t("editor/toolbar/insert-header-5")}`
+              },
+              {
+                text: "###### ",
+                displayText: `/h6 - ${t("editor/toolbar/insert-header-6")}`
+              },
+              {
+                text: "> ",
+                displayText: `/blockquote - ${t(
+                  "editor/toolbar/insert-blockquote"
+                )}`
+              },
+              {
+                text: "* ",
+                displayText: `/ul - ${t(
+                  "editor/toolbar/insert-unordered-list"
+                )}`
+              },
+              {
+                text: "1. ",
+                displayText: `/ol - ${t("editor/toolbar/insert-ordered-list")}`
+              },
+              {
+                text: "`@crossnote.image`\n",
+                displayText: `/image - ${t("editor/toolbar/insert-image")}`
+              },
+              {
+                text: `|   |   |
+|---|---|
+|   |   |
+`,
+                displayText: `/table - ${t("editor/toolbar/insert-table")}`
+              },
+              {
+                text:
+                  "`@timer " +
+                  JSON.stringify({ date: new Date().toString() })
+                    .replace(/^{/, "")
+                    .replace(/}$/, "") +
+                  "`\n",
+                displayText: `/timer - ${t("editor/toolbar/insert-clock")}`
+              },
+              {
+                text: "",
+                displayText: `/emoji - ${t("editor/toolbar/insert-emoji")}`
+              },
+              {
+                text: "`@crossnote.audio`  \n",
+                displayText: `/audio - ${t("editor/toolbar/audio-url")}`
+              },
+              {
+                text: "`@crossnote.netease_music`  \n",
+                displayText: `/netease - ${t("editor/toolbar/netease-music")}`
+              },
+              {
+                text: "`@crossnote.video`  \n",
+                displayText: `/video - ${t("editor/toolbar/video-url")}`
+              },
+              {
+                text: "`@crossnote.youtube`  \n",
+                displayText: `/youtube - ${t("editor/toolbar/youtube")}`
+              },
+              {
+                text: "`@crossnote.bilibili`  \n",
+                displayText: `/bilibili - ${t("editor/toolbar/bilibili")}`
+              },
+              {
+                text: "<!-- slide -->  \n",
+                displayText: `/slide - ${t("editor/toolbar/insert-slide")}`
+              },
+              {
+                text: "`@crossnote.ocr`  \n",
+                displayText: `/ocr - ${t("editor/toolbar/insert-ocr")}`
+              },
+              {
+                text: '`@crossnote.kanban "v":2,"board":{"columns":[]}`  \n',
+                displayText: `/kanban - ${t("editor/toolbar/insert-kanban")}`
+              },
+              {
+                text: "`@crossnote.abc`  \n",
+                displayText: `/abc - ${t("editor/toolbar/insert-abc-notation")}`
+              }
+            ];
+            const filtered = commands.filter(
+              item =>
+                item.displayText
+                  .toLocaleLowerCase()
+                  .indexOf(currentWord.toLowerCase()) >= 0
+            );
+            return {
+              list: filtered.length ? filtered : commands,
+              from: { line, ch: start },
+              to: { line, ch: end }
+            };
+          }
+        });
+      }
+
+      // Timer
+      if (
+        changeObject.text.length > 0 &&
+        changeObject.text[0].startsWith("`@timer ") &&
+        changeObject.removed.length > 0 &&
+        changeObject.removed[0].startsWith("/")
+      ) {
+        // Calcuate date time
+        const lines = editor.getValue().split("\n");
+        const timerTexts: TimerText[] = [];
+        for (let i = 0; i < lines.length; i++) {
+          const match = lines[i].match(/^`@timer\s.+`/);
+          if (match) {
+            const text = match[0];
+            const dataMatch = text.match(/^`@timer\s+(.+)`/);
+            if (!dataMatch || !dataMatch.length) {
+              continue;
+            }
+            const dataStr = dataMatch[1];
+            try {
+              const data = JSON.parse(`{${dataStr}}`);
+              const datetime = data["date"];
+              if (datetime) {
+                timerTexts.push({
+                  text: text,
+                  line: i,
+                  date: new Date(datetime)
+                });
+              }
+            } catch (error) {
+              continue;
+            }
+          }
+        }
+        for (let i = 1; i < timerTexts.length; i++) {
+          const currentTimerText = timerTexts[i];
+          const previousTimerText = timerTexts[i - 1];
+          const duration = formatDistance(
+            currentTimerText.date,
+            previousTimerText.date,
+            { includeSeconds: true }
+          );
+          const newText = `\`@timer ${JSON.stringify({
+            date: currentTimerText.date.toString(),
+            duration
+          })
+            .replace(/^{/, "")
+            .replace(/}$/, "")}\``;
+          editor.replaceRange(
+            newText,
+            { line: currentTimerText.line, ch: 0 },
+            { line: currentTimerText.line, ch: currentTimerText.text.length }
+          );
+        }
+      }
+    };
+    editor.on("change", onChangeHandler);
+
+    const onCursorActivityHandler = (instance: CodeMirrorEditor) => {
+      // console.log("cursorActivity", editor.getCursor());
+      // console.log("selection: ", editor.getSelection());
+      return;
+    };
+    editor.on("cursorActivity", onCursorActivityHandler);
+
+    return () => {
+      editor.off("change", onChangeHandler);
+      editor.off("cursorActivity", onCursorActivityHandler);
+    };
+  }, [editor, note /*t*/]);
+
   return (
     <Box className={clsx(classes.editorPanel)}>
       <Box className={clsx(classes.topPanel)}>
@@ -465,7 +678,7 @@ export default function Editor(props: Props) {
       >
         <textarea
           className={clsx(classes.editor, "editor-textarea")}
-          placeholder={"#  Hi 😀"}
+          placeholder={t("editor/placeholder")}
           ref={(element: HTMLTextAreaElement) => {
             setTextAreaElement(element);
           }}
