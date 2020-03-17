@@ -1,28 +1,28 @@
 {
   "files": {
-    "main.css": "/notehub/static/css/main.007889dd.chunk.css",
-    "main.js": "/notehub/static/js/main.a41c8580.chunk.js",
-    "main.js.map": "/notehub/static/js/main.a41c8580.chunk.js.map",
+    "main.css": "/notehub/static/css/main.9ef46d38.chunk.css",
+    "main.js": "/notehub/static/js/main.fd6f6a5f.chunk.js",
+    "main.js.map": "/notehub/static/js/main.fd6f6a5f.chunk.js.map",
     "runtime-main.js": "/notehub/static/js/runtime-main.b57ef336.js",
     "runtime-main.js.map": "/notehub/static/js/runtime-main.b57ef336.js.map",
-    "static/css/2.ebfb357c.chunk.css": "/notehub/static/css/2.ebfb357c.chunk.css",
-    "static/js/2.f6b20fd0.chunk.js": "/notehub/static/js/2.f6b20fd0.chunk.js",
-    "static/js/2.f6b20fd0.chunk.js.map": "/notehub/static/js/2.f6b20fd0.chunk.js.map",
+    "static/css/2.8c2ed086.chunk.css": "/notehub/static/css/2.8c2ed086.chunk.css",
+    "static/js/2.7f6253e0.chunk.js": "/notehub/static/js/2.7f6253e0.chunk.js",
+    "static/js/2.7f6253e0.chunk.js.map": "/notehub/static/js/2.7f6253e0.chunk.js.map",
     "index.html": "/notehub/index.html",
-    "precache-manifest.e77ec5c65c5dfda5012fa67bbc094845.js": "/notehub/precache-manifest.e77ec5c65c5dfda5012fa67bbc094845.js",
+    "precache-manifest.bee1bbdb91310cc444e96acb93ebb52b.js": "/notehub/precache-manifest.bee1bbdb91310cc444e96acb93ebb52b.js",
     "service-worker.js": "/notehub/service-worker.js",
-    "static/css/2.ebfb357c.chunk.css.map": "/notehub/static/css/2.ebfb357c.chunk.css.map",
-    "static/css/main.007889dd.chunk.css.map": "/notehub/static/css/main.007889dd.chunk.css.map",
-    "static/js/2.f6b20fd0.chunk.js.LICENSE.txt": "/notehub/static/js/2.f6b20fd0.chunk.js.LICENSE.txt",
-    "static/js/main.a41c8580.chunk.js.LICENSE.txt": "/notehub/static/js/main.a41c8580.chunk.js.LICENSE.txt",
+    "static/css/2.8c2ed086.chunk.css.map": "/notehub/static/css/2.8c2ed086.chunk.css.map",
+    "static/css/main.9ef46d38.chunk.css.map": "/notehub/static/css/main.9ef46d38.chunk.css.map",
+    "static/js/2.7f6253e0.chunk.js.LICENSE.txt": "/notehub/static/js/2.7f6253e0.chunk.js.LICENSE.txt",
+    "static/js/main.fd6f6a5f.chunk.js.LICENSE.txt": "/notehub/static/js/main.fd6f6a5f.chunk.js.LICENSE.txt",
     "static/media/katex.min.css": "/notehub/static/media/KaTeX_Typewriter-Regular.6cc31ea5.woff2",
     "static/media/index.css": "/notehub/static/media/roboto-latin-900italic.ebf6d164.woff2"
   },
   "entrypoints": [
     "static/js/runtime-main.b57ef336.js",
-    "static/css/2.ebfb357c.chunk.css",
-    "static/js/2.f6b20fd0.chunk.js",
-    "static/css/main.007889dd.chunk.css",
-    "static/js/main.a41c8580.chunk.js"
+    "static/css/2.8c2ed086.chunk.css",
+    "static/js/2.7f6253e0.chunk.js",
+    "static/css/main.9ef46d38.chunk.css",
+    "static/js/main.fd6f6a5f.chunk.js"
   ]
 }
