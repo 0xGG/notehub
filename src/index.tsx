@@ -7,8 +7,8 @@ import ReactDOM from "react-dom";
 import "typeface-roboto";
 import "noty/lib/noty.css";
 import "noty/lib/themes/relax.css";
-import { BFSRequire, configure as BFSConfigure } from "browserfs";
-import Noty from "noty";
+// @ts-ignore
+import LightningFS from "@isomorphic-git/lightning-fs";
 
 import "./i18n/i18n";
 import "./index.css";
@@ -17,38 +17,28 @@ import * as serviceWorker from "./serviceWorker";
 import Crossnote from "./lib/crossnote";
 import { CrossnoteContainer } from "./containers/crossnote";
 
-BFSConfigure({ fs: "IndexedDB", options: {} }, async error => {
-  if (error) {
-    return new Noty({
-      type: "error",
-      text: error.toString(),
-      layout: "topRight",
-      theme: "relax",
-      timeout: 2000
-    }).show();
-  }
-  const fs = BFSRequire("fs");
+const fs = new LightningFS("fs");
+(window as any)["fs"] = fs;
 
-  try {
-    const crossnote = new Crossnote({
-      fs: fs
-    });
-    (window as any)["crossnote"] = crossnote;
+try {
+  const crossnote = new Crossnote({
+    fs: fs
+  });
+  (window as any)["crossnote"] = crossnote;
 
-    ReactDOM.render(
-      <CrossnoteContainer.Provider
-        initialState={{
-          crossnote: crossnote
-        }}
-      >
-        <App />
-      </CrossnoteContainer.Provider>,
-      document.getElementById("root")
-    );
-  } catch (error) {
-    console.log(error);
-  }
-});
+  ReactDOM.render(
+    <CrossnoteContainer.Provider
+      initialState={{
+        crossnote: crossnote
+      }}
+    >
+      <App />
+    </CrossnoteContainer.Provider>,
+    document.getElementById("root")
+  );
+} catch (error) {
+  console.log(error);
+}
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

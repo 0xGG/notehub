@@ -357,9 +357,10 @@ function useCrossnoteContainer(initialState: InitialState) {
           dir: "./",
           includeSubdirectories: true
         })
-      ).sort(
-        (a, b) => b.config.modifiedAt.getTime() - a.config.modifiedAt.getTime()
-      );
+      ).sort((a, b) => {
+        console.log(b.config, a.config);
+        return b.config.modifiedAt.getTime() - a.config.modifiedAt.getTime();
+      });
       setNotebookNotes(notes);
       setNotebookDirectories(
         await crossnote.getNotebookDirectoriesFromNotes(notes)
