@@ -98,7 +98,12 @@ export default function NoteCard(props: Props) {
     crossnoteContainer.crossnote.getStatus(note).then(status => {
       setGitStatus(status);
     });
-  }, [note.markdown, note, crossnoteContainer.crossnote]);
+  }, [
+    note.markdown,
+    note.config.modifiedAt,
+    note,
+    crossnoteContainer.crossnote
+  ]);
 
   return (
     <ButtonBase
