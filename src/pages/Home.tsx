@@ -241,7 +241,12 @@ export function Home(props: Props) {
         {notesPanel}
         <Paper
           className={clsx(classes.editorPanel)}
-          style={{ display: crossnoteContainer.displayMobileEditor && "block" }}
+          style={{
+            display:
+              crossnoteContainer.displayMobileEditor &&
+              crossnoteContainer.selectedNote &&
+              "block"
+          }}
         >
           {crossnoteContainer.selectedNote && (
             <Editor note={crossnoteContainer.selectedNote}></Editor>

@@ -257,10 +257,10 @@ export default function Editor(props: Props) {
   }, [note, crossnoteContainer.crossnote]);
 
   useEffect(() => {
-    if (!crossnoteContainer.displayMobileEditor) {
-      setEditor(null);
+    if (crossnoteContainer.displayMobileEditor && editor) {
+      editor.setValue(note.markdown || "");
     }
-  }, [crossnoteContainer.displayMobileEditor]);
+  }, [crossnoteContainer.displayMobileEditor, editor, note.markdown]);
 
   useEffect(() => {
     if (textAreaElement && !editor) {

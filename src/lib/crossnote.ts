@@ -571,14 +571,17 @@ export default class Crossnote {
         dir: note.notebook.dir,
         // ref: "HEAD"
         // ref: note.notebook.gitBranch,
-        filepaths: [note.filePath]
+        filepaths: [note.filePath],
+        force: true
       });
-      await git.add({
-        // .remove is wrong
-        fs: this.fs,
-        dir: note.notebook.dir,
-        filepath: note.filePath
-      });
+      if (await this.exists(path.resolve(note.notebook.dir, note.filePath))) {
+        await git.add({
+          // .remove is wrong
+          fs: this.fs,
+          dir: note.notebook.dir,
+          filepath: note.filePath
+        });
+      }
       const newNote = await this.getNote(note.notebook, note.filePath);
       return newNote;
     } catch (error) {
