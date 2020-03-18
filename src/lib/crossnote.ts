@@ -521,6 +521,8 @@ export default class Crossnote {
       corsProxy: notebook.gitCorsProxy
     });
     if (pushResult.ok) {
+      /*
+      // NOTE: This is wrong. It will cause all files to be deleted in next push
       // Unstage all files
       for (let i = 0; i < stagedFiles.length; i++) {
         await git.remove({
@@ -528,7 +530,7 @@ export default class Crossnote {
           dir: notebook.dir,
           filepath: stagedFiles[i]
         });
-      }
+      }*/
     }
     return pushResult;
   }
