@@ -573,7 +573,8 @@ export default class Crossnote {
         // ref: note.notebook.gitBranch,
         filepaths: [note.filePath]
       });
-      await git.remove({
+      await git.add({
+        // .remove is wrong
         fs: this.fs,
         dir: note.notebook.dir,
         filepath: note.filePath

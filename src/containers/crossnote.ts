@@ -343,8 +343,12 @@ function useCrossnoteContainer(initialState: InitialState) {
       let notebook: Notebook = null;
       if (notebooks.length) {
         setNotebooks(notebooks);
-        setSelectedNotebook(notebooks[0]); // TODO: <= default selected
-        notebook = notebooks[0];
+        const selectedNotebookID = localStorage.getItem("selectedNotebookID");
+        notebook = notebooks.find(n => n._id === selectedNotebookID);
+        if (!notebook) {
+          notebook = notebooks[0];
+        }
+        setSelectedNotebook(notebook); // TODO: <= default selected
       } else {
         /*
         notebook = await crossnote.cloneNotebook({
@@ -437,11 +441,19 @@ function useCrossnoteContainer(initialState: InitialState) {
     notebookNotes
   ]);
 
+  const _setSelectedNotebook = useCallback(
+    (notebook: Notebook) => {
+      localStorage.setItem("selectedNotebookID", notebook._id);
+      setSelectedNotebook(notebook);
+    },
+    [setSelectedNotebook]
+  );
+
   return {
     crossnote,
     notebooks,
     selectedNotebook,
-    setSelectedNotebook,
+    setSelectedNotebook: _setSelectedNotebook,
     notes,
     selectedNote,
     setSelectedNote,
