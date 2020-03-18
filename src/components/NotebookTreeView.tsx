@@ -26,8 +26,8 @@ const useStyles = makeStyles((theme: Theme) =>
     treeItemContent: {
       cursor: "default",
       color: theme.palette.text.primary,
-      paddingLeft: theme.spacing(1),
-      paddingRight: theme.spacing(1),
+      // paddingLeft: theme.spacing(1),
+      // paddingRight: theme.spacing(1),
       userSelect: "none",
       fontWeight: theme.typography.fontWeightMedium,
       "$treeItemExpanded > &": {
@@ -37,7 +37,7 @@ const useStyles = makeStyles((theme: Theme) =>
     treeItemGroup: {
       marginLeft: 0,
       "& $treeItemContent": {
-        paddingLeft: theme.spacing(2)
+        // paddingLeft: theme.spacing(2)
       }
     },
     treeItemExpanded: {},
@@ -192,7 +192,6 @@ export default function NotebookTreeView(props: Props) {
           </Box>
         }
       >
-        {/*
         <TreeItem
           nodeId={"today-notes"}
           classes={{
@@ -242,8 +241,34 @@ export default function NotebookTreeView(props: Props) {
               </Typography>
             </Box>
           }
-        ></TreeItem>*/}
-        {constructDirectoryTreeItems(crossnoteContainer.notebookDirectories)}
+        ></TreeItem>
+        <TreeItem
+          nodeId={"directories"}
+          classes={{
+            root: classes.treeItemRoot,
+            content: classes.treeItemContent,
+            expanded: classes.treeItemExpanded,
+            group: classes.treeItemGroup,
+            label: classes.treeItemLabel
+          }}
+          label={
+            <Box
+              onClick={() => {
+                crossnoteContainer.setSelectedDir("$notes");
+              }}
+              className={clsx(classes.treeItemLabelRoot)}
+            >
+              <span role="img" aria-label="directories">
+                🗂
+              </span>
+              <Typography className={clsx(classes.treeItemLabelText)}>
+                {"notes"}
+              </Typography>
+            </Box>
+          }
+        >
+          {constructDirectoryTreeItems(crossnoteContainer.notebookDirectories)}
+        </TreeItem>
       </TreeItem>
     </TreeView>
   );
