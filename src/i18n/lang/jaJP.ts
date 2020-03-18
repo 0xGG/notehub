@@ -111,6 +111,7 @@ export const jaJP = {
     "general/Languages": "言語",
     "general/track": "たどる",
     "general/Publish": "公開",
+    "general/empty": "空",
 
     // Note
     "note/unarchive-note": "アーカイブ解除",
@@ -431,6 +432,7 @@ export const jaJP = {
     "widget/crossnote.ocr/start-ocr": "開始文字識別",
     "widget/crossnote.ocr/extra-settings": "追加設定",
     "widget/crossnote.ocr/grayscale": "グレースケール",
+    "widget/crossnote.kanban/add-column": "新しい列を追加する",
 
     // Tesseract
     "tesseract/loading tesseract core": "loading tesseract core",

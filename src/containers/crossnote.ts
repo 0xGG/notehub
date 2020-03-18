@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createContainer } from "unstated-next";
 import * as path from "path";
+import Noty from "noty";
 import { randomID, OneDay } from "../utilities/utils";
 import { useTranslation } from "react-i18next";
 import Crossnote, {
@@ -89,20 +90,34 @@ function useCrossnoteContainer(initialState: InitialState) {
   const changeNoteFilePath = useCallback(
     (note: Note, newFilePath: string) => {
       (async () => {
-        await crossnote.changeNoteFilePath(selectedNotebook, note, newFilePath);
-        const newNotes = notebookNotes.map(n => {
-          if (n.filePath === note.filePath) {
-            n.filePath = newFilePath;
-            n.config.modifiedAt = new Date();
-            return n;
-          } else {
-            return n;
-          }
-        });
-        setNotebookNotes(newNotes);
-        setNotebookDirectories(
-          await crossnote.getNotebookDirectoriesFromNotes(newNotes)
-        );
+        try {
+          await crossnote.changeNoteFilePath(
+            selectedNotebook,
+            note,
+            newFilePath
+          );
+          const newNotes = notebookNotes.map(n => {
+            if (n.filePath === note.filePath) {
+              n.filePath = newFilePath;
+              n.config.modifiedAt = new Date();
+              return n;
+            } else {
+              return n;
+            }
+          });
+          setNotebookNotes(newNotes);
+          setNotebookDirectories(
+            await crossnote.getNotebookDirectoriesFromNotes(newNotes)
+          );
+        } catch (error) {
+          new Noty({
+            type: "error",
+            text: "Failed to change file path",
+            layout: "topRight",
+            theme: "relax",
+            timeout: 5000
+          }).show();
+        }
       })();
     },
     [selectedNotebook, crossnote, notebookNotes]

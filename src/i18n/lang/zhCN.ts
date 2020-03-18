@@ -111,6 +111,7 @@ export const zhCN = {
     "general/Languages": "语言",
     "general/track": "跟踪",
     "general/Publish": "发布",
+    "general/empty": "空的",
 
     // Note
     "note/unarchive-note": "取消归档",
@@ -400,6 +401,7 @@ export const zhCN = {
     "widget/crossnote.ocr/start-ocr": "开始文字识别",
     "widget/crossnote.ocr/extra-settings": "额外设定",
     "widget/crossnote.ocr/grayscale": "灰度",
+    "widget/crossnote.kanban/add-column": "添加新的列",
 
     // Tesseract
     "tesseract/loading tesseract core": "正在读取 tesseract 核心",

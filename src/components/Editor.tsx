@@ -254,7 +254,7 @@ export default function Editor(props: Props) {
     crossnoteContainer.crossnote.getStatus(note).then(status => {
       setGitStatus(status);
     });
-  }, [note]);
+  }, [note, crossnoteContainer.crossnote]);
 
   useEffect(() => {
     if (!crossnoteContainer.displayMobileEditor) {

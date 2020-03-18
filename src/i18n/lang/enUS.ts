@@ -111,6 +111,7 @@ export const enUS = {
     "general/Languages": "Languages",
     "general/track": "Track",
     "general/Publish": "Publish",
+    "general/empty": "empty",
 
     // Note
     "note/unarchive-note": "Unarchive note",
@@ -416,6 +417,7 @@ export const enUS = {
     "widget/crossnote.ocr/start-ocr": "Start OCR",
     "widget/crossnote.ocr/extra-settings": "Extra settings",
     "widget/crossnote.ocr/grayscale": "Grayscale",
+    "widget/crossnote.kanban/add-column": "Add new column",
 
     // Tesseract
     "tesseract/loading tesseract core": "loading tesseract core",

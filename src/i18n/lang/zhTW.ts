@@ -111,6 +111,7 @@ export const zhTW = {
     "general/Languages": "語言",
     "general/track": "跟蹤",
     "general/Publish": "發布",
+    "general/empty": "空的",
 
     // Note
     "note/unarchive-note": "取消歸檔",
@@ -400,6 +401,7 @@ export const zhTW = {
     "widget/crossnote.ocr/start-ocr": "開始文字識別",
     "widget/crossnote.ocr/extra-settings": "額外設定",
     "widget/crossnote.ocr/grayscale": "灰度",
+    "widget/crossnote.kanban/add-column": "添加新的列",
 
     // Tesseract
     "tesseract/loading tesseract core": "正在讀取 tesseract 核心",

@@ -438,6 +438,13 @@ export default class Crossnote {
         await this.mkdir(paths.join("/"));
       }
     }
+
+    // TODO: Check if newFilePath already exists. If so don't overwrite
+    const exists = await this.exists(path.resolve(notebook.dir, newFilePath));
+    if (exists) {
+      throw new Error("target file already exists");
+    }
+
     await this.rename(
       path.resolve(notebook.dir, note.filePath),
       path.resolve(notebook.dir, newFilePath)
