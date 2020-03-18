@@ -16,7 +16,10 @@ import {
   Tooltip,
   TextField,
   ButtonGroup,
-  IconButton
+  IconButton,
+  Menu,
+  MenuList,
+  MenuItem
 } from "@material-ui/core";
 import { Editor as CodeMirrorEditor, EditorChangeLinkedList } from "codemirror";
 import {
@@ -30,7 +33,9 @@ import {
   Restore,
   Fullscreen,
   FullscreenExit,
-  ChevronLeft
+  ChevronLeft,
+  Tag,
+  Close
 } from "mdi-material-ui";
 import { renderPreview } from "vickymd/preview";
 import PushNotebookDialog from "./PushNotebookDialog";
@@ -135,6 +140,16 @@ const useStyles = makeStyles((theme: Theme) =>
       [theme.breakpoints.up("sm")]: {
         display: "none"
       }
+    },
+    menuItemOverride: {
+      cursor: "default",
+      padding: `0 0 0 ${theme.spacing(2)}px`,
+      "&:hover": {
+        backgroundColor: "inherit"
+      }
+    },
+    menuItemTextField: {
+      paddingRight: theme.spacing(2)
     }
   })
 );
@@ -175,6 +190,9 @@ export default function Editor(props: Props) {
   const [previewElement, setPreviewElement] = useState<HTMLElement>(null);
   const [gitStatus, setGitStatus] = useState<string>("");
   const [fullScreenMode, setFullScreenMode] = useState<boolean>(false);
+  const [tagsMenuAnchorEl, setTagsMenuAnchorEl] = useState<HTMLElement>(null);
+  const [tagName, setTagName] = useState<string>("");
+  const [tagNames, setTagNames] = useState<string[]>([]);
   const crossnoteContainer = CrossnoteContainer.useContainer();
   const { t } = useTranslation();
 
@@ -246,6 +264,41 @@ export default function Editor(props: Props) {
     crossnoteContainer.checkoutNote(note);
   }, [note]);
 
+  const addTag = useCallback(() => {
+    const tag = tagName.trim() || "";
+    if (!note || !tag.length || !editor) {
+      return;
+    }
+    setTagNames(tagNames => {
+      const newTagNames =
+        tagNames.indexOf(tag) >= 0 ? [...tagNames] : [tag, ...tagNames];
+      note.config.tags = newTagNames.sort((x, y) => x.localeCompare(y));
+      crossnoteContainer.updateNoteMarkdown(note, editor.getValue(), status => {
+        setGitStatus(status);
+      });
+      return newTagNames;
+    });
+    setTagName("");
+  }, [tagName, note, editor]);
+
+  const deleteTag = useCallback(
+    (tagName: string) => {
+      setTagNames(tagNames => {
+        const newTagNames = tagNames.filter(t => t !== tagName);
+        note.config.tags = newTagNames.sort((x, y) => x.localeCompare(y));
+        crossnoteContainer.updateNoteMarkdown(
+          note,
+          editor.getValue(),
+          status => {
+            setGitStatus(status);
+          }
+        );
+        return newTagNames;
+      });
+    },
+    [note, editor]
+  );
+
   useEffect(() => {
     setNewFilePath(note.filePath);
   }, [note.filePath]);
@@ -292,6 +345,7 @@ export default function Editor(props: Props) {
 
   useEffect(() => {
     if (editor && note) {
+      setTagNames(note.config.tags);
       editor.setValue(note.markdown);
       const handler = () => {
         const markdown = editor.getValue();
@@ -453,7 +507,9 @@ export default function Editor(props: Props) {
               },
               {
                 text: '`@crossnote.kanban "v":2,"board":{"columns":[]}`  \n',
-                displayText: `/kanban - ${t("editor/toolbar/insert-kanban")}`
+                displayText: `/kanban - ${t(
+                  "editor/toolbar/insert-kanban"
+                )} (beta)`
               },
               {
                 text: "`@crossnote.abc`  \n",
@@ -612,6 +668,16 @@ export default function Editor(props: Props) {
             </Tooltip>
           </ButtonGroup>
           <ButtonGroup style={{ marginLeft: "8px" }}>
+            <Tooltip title={"Tags"}>
+              <Button
+                className={clsx(classes.controlBtn)}
+                onClick={event => setTagsMenuAnchorEl(event.currentTarget)}
+              >
+                <Tag></Tag>
+              </Button>
+            </Tooltip>
+          </ButtonGroup>
+          <ButtonGroup style={{ marginLeft: "8px" }}>
             <Tooltip title={"Fullscreen"}>
               <Button
                 className={clsx(classes.controlBtn)}
@@ -668,6 +734,60 @@ export default function Editor(props: Props) {
               </Tooltip>
             </ButtonGroup>
           )}
+          <Menu
+            open={Boolean(tagsMenuAnchorEl)}
+            anchorEl={tagsMenuAnchorEl}
+            keepMounted
+            onClose={() => setTagsMenuAnchorEl(null)}
+          >
+            <MenuItem
+              className={clsx(
+                classes.menuItemOverride,
+                classes.menuItemTextField
+              )}
+            >
+              <TextField
+                placeholder={"Add tag..."}
+                autoFocus={true}
+                value={tagName}
+                onChange={event => setTagName(event.target.value)}
+                onKeyUp={event => {
+                  if (event.which === 13) {
+                    addTag();
+                  }
+                }}
+              ></TextField>
+            </MenuItem>
+            {tagNames.length > 0 ? (
+              tagNames.map(tagName => {
+                return (
+                  <MenuItem
+                    key={tagName}
+                    className={clsx(classes.menuItemOverride)}
+                  >
+                    <Box
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        width: "100%"
+                      }}
+                    >
+                      <Typography>{tagName}</Typography>
+                      <IconButton onClick={() => deleteTag(tagName)}>
+                        <Close></Close>
+                      </IconButton>
+                    </Box>
+                  </MenuItem>
+                );
+              })
+            ) : (
+              <MenuItem className={clsx(classes.menuItemOverride)}>
+                <Typography>{"No tags"}</Typography>
+              </MenuItem>
+            )}
+          </Menu>
         </Box>
       </Box>
       <Box
