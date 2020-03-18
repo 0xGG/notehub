@@ -72,6 +72,7 @@ export default function NoteCard(props: Props) {
   const crossnoteContainer = CrossnoteContainer.useContainer();
   const [header, setHeader] = useState<string>("");
   const [summary, setSummary] = useState<Summary>(null);
+  const [gitStatus, setGitStatus] = useState<string>("");
   const { t } = useTranslation();
   const duration = formatDistanceStrict(note.config.modifiedAt, Date.now())
     .replace(/\sseconds?/, "s")
@@ -85,13 +86,19 @@ export default function NoteCard(props: Props) {
   useEffect(() => {
     setHeader(getHeaderFromMarkdown(note.markdown));
     generateSummaryFromMarkdown(
-      note.markdown || t("general/this-note-is-empty")
+      note.markdown.trim() || t("general/this-note-is-empty")
     )
       .then(summary => {
         setSummary(summary);
       })
       .catch(error => {});
   }, [note.markdown, t]);
+
+  useEffect(() => {
+    crossnoteContainer.crossnote.getStatus(note).then(status => {
+      setGitStatus(status);
+    });
+  }, [note.markdown, note, crossnoteContainer.crossnote]);
 
   return (
     <ButtonBase
@@ -126,7 +133,7 @@ export default function NoteCard(props: Props) {
           </Typography>
         )}
         <Typography variant={"caption"} className={clsx(classes.filePath)}>
-          {note.filePath}
+          {note.filePath + " - " + gitStatus}
         </Typography>
       </Box>
     </ButtonBase>

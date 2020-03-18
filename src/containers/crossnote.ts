@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createContainer } from "unstated-next";
 import * as path from "path";
+import Noty from "noty";
 import { randomID, OneDay } from "../utilities/utils";
 import { useTranslation } from "react-i18next";
 import Crossnote, {
@@ -89,20 +90,34 @@ function useCrossnoteContainer(initialState: InitialState) {
   const changeNoteFilePath = useCallback(
     (note: Note, newFilePath: string) => {
       (async () => {
-        await crossnote.changeNoteFilePath(selectedNotebook, note, newFilePath);
-        const newNotes = notebookNotes.map(n => {
-          if (n.filePath === note.filePath) {
-            n.filePath = newFilePath;
-            n.config.modifiedAt = new Date();
-            return n;
-          } else {
-            return n;
-          }
-        });
-        setNotebookNotes(newNotes);
-        setNotebookDirectories(
-          await crossnote.getNotebookDirectoriesFromNotes(newNotes)
-        );
+        try {
+          await crossnote.changeNoteFilePath(
+            selectedNotebook,
+            note,
+            newFilePath
+          );
+          const newNotes = notebookNotes.map(n => {
+            if (n.filePath === note.filePath) {
+              n.filePath = newFilePath;
+              n.config.modifiedAt = new Date();
+              return n;
+            } else {
+              return n;
+            }
+          });
+          setNotebookNotes(newNotes);
+          setNotebookDirectories(
+            await crossnote.getNotebookDirectoriesFromNotes(newNotes)
+          );
+        } catch (error) {
+          new Noty({
+            type: "error",
+            text: "Failed to change file path",
+            layout: "topRight",
+            theme: "relax",
+            timeout: 5000
+          }).show();
+        }
       })();
     },
     [selectedNotebook, crossnote, notebookNotes]
@@ -328,8 +343,12 @@ function useCrossnoteContainer(initialState: InitialState) {
       let notebook: Notebook = null;
       if (notebooks.length) {
         setNotebooks(notebooks);
-        setSelectedNotebook(notebooks[0]); // TODO: <= default selected
-        notebook = notebooks[0];
+        const selectedNotebookID = localStorage.getItem("selectedNotebookID");
+        notebook = notebooks.find(n => n._id === selectedNotebookID);
+        if (!notebook) {
+          notebook = notebooks[0];
+        }
+        setSelectedNotebook(notebook); // TODO: <= default selected
       } else {
         /*
         notebook = await crossnote.cloneNotebook({
@@ -422,11 +441,19 @@ function useCrossnoteContainer(initialState: InitialState) {
     notebookNotes
   ]);
 
+  const _setSelectedNotebook = useCallback(
+    (notebook: Notebook) => {
+      localStorage.setItem("selectedNotebookID", notebook._id);
+      setSelectedNotebook(notebook);
+    },
+    [setSelectedNotebook]
+  );
+
   return {
     crossnote,
     notebooks,
     selectedNotebook,
-    setSelectedNotebook,
+    setSelectedNotebook: _setSelectedNotebook,
     notes,
     selectedNote,
     setSelectedNote,

@@ -7,11 +7,23 @@ import {
   IconButton,
   Box,
   CardContent,
-  TextField
+  TextField,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogActions
 } from "@material-ui/core";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import clsx from "clsx";
-import { CardPlus, Close, ContentSave, Cancel } from "mdi-material-ui";
+import {
+  CardPlus,
+  Close,
+  ContentSave,
+  Cancel,
+  Plus,
+  TrashCan,
+  Pencil
+} from "mdi-material-ui";
 import { useTranslation } from "react-i18next";
 
 // @ts-ignore
@@ -22,7 +34,7 @@ const VickyMD = require("vickymd");
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
-    laneHeader: {
+    columnHeader: {
       width: "256px",
       maxWidth: "100%",
       display: "flex",
@@ -61,7 +73,7 @@ interface KanbanCard {
   description: string;
 }
 
-interface KanbanLane {
+interface kanbanColumn {
   id: number;
   title: string;
   wip: boolean;
@@ -69,36 +81,36 @@ interface KanbanLane {
 }
 
 interface KanbanBoard {
-  lanes: KanbanLane[];
+  columns: kanbanColumn[];
 }
 
-interface KanbanLaneHeaderProps {
-  lane: KanbanLane;
+interface KanbanColumnHeaderProps {
+  column: kanbanColumn;
   board: KanbanBoard;
   refreshBoard: (board: Board) => void;
   isPreview: boolean;
 }
 
-function KanbanLaneHeaderDisplay(props: KanbanLaneHeaderProps) {
+function KanbanColumnHeaderDisplay(props: KanbanColumnHeaderProps) {
   const classes = useStyles(props);
   const { t } = useTranslation();
-  const lane = props.lane;
+  const column = props.column;
   const board = props.board;
   const isPreview = props.isPreview;
   const refreshBoard = props.refreshBoard;
   const [clickedTitle, setClickedTitle] = useState<boolean>(false);
-  const [titleValue, setTitleValue] = useState<string>(lane.title);
+  const [titleValue, setTitleValue] = useState<string>(column.title);
 
   useEffect(() => {
-    if (!clickedTitle && titleValue !== lane.title) {
-      lane.title = titleValue || t("general/Untitled");
-      setTitleValue(lane.title);
+    if (!clickedTitle && titleValue !== column.title) {
+      column.title = titleValue || t("general/Untitled");
+      setTitleValue(column.title);
       refreshBoard(board);
     }
-  }, [clickedTitle, board, lane.title, titleValue, t, refreshBoard]);
+  }, [clickedTitle, board, column.title, titleValue, t, refreshBoard]);
 
   return (
-    <Box className={clsx(classes.laneHeader)}>
+    <Box className={clsx(classes.columnHeader)}>
       <Box>
         {clickedTitle ? (
           <TextField
@@ -135,11 +147,11 @@ function KanbanLaneHeaderDisplay(props: KanbanLaneHeaderProps) {
             onClick={() => {
               const card: KanbanCard = {
                 id: Date.now(),
-                title: "", //"Card " + lane.cards.length,
-                description: "empty"
+                title: "", //"Card " + column.cards.length,
+                description: t("general/empty")
               };
-              if (lane) {
-                lane.cards.push(card);
+              if (column) {
+                column.cards.push(card);
               }
               props.refreshBoard(board);
             }}
@@ -148,7 +160,7 @@ function KanbanLaneHeaderDisplay(props: KanbanLaneHeaderProps) {
           </IconButton>
           <IconButton
             onClick={() => {
-              board.lanes = board.lanes.filter(l => lane.id !== l.id);
+              board.columns = board.columns.filter(l => column.id !== l.id);
               props.refreshBoard(board);
             }}
           >
@@ -178,7 +190,7 @@ function KanbanCardDisplay(props: KanbanCardProps) {
 
   const [editor, setEditor] = useState<CodeMirrorEditor>(null);
   const [description, setDescription] = useState<string>(card.description);
-  const [clickedPreview, setClickedPreview] = useState<boolean>(false);
+  const [editorDialogOpen, setEditDialogOpen] = useState<boolean>(false);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -205,6 +217,7 @@ function KanbanCardDisplay(props: KanbanCardProps) {
       editor.on("changes", () => {
         setDescription(editor.getValue());
       });
+      editor.focus();
       /*
       // Cause save not working
       editor.on("blur", () => {
@@ -223,79 +236,68 @@ function KanbanCardDisplay(props: KanbanCardProps) {
     }
   }, [previewElement]);
 
-  if (isPreview || !clickedPreview) {
-    return (
-      <Card className={clsx(classes.kanbanCard)}>
-        <div
-          className={clsx("preview", classes.preview)}
-          ref={(element: HTMLElement) => {
-            setPreviewElement(element);
-          }}
-          onClick={() => {
-            if (!isPreview) {
-              setClickedPreview(true);
-            }
-          }}
-        ></div>
-        {!isPreview && (
-          <Box
-            style={{ position: "absolute", top: "0", right: "0", zIndex: 99 }}
-          >
-            <IconButton
-              onClick={() => {
-                board.lanes.forEach(lane => {
-                  lane.cards = lane.cards.filter(c => c.id !== card.id);
-                });
-                props.refreshBoard(board);
-              }}
-            >
-              <Close></Close>
-            </IconButton>
-          </Box>
-        )}
-      </Card>
-    );
-  }
-
   return (
     <Card className={clsx(classes.kanbanCard)}>
-      <CardContent>
-        <Box className={clsx(classes.editorWrapper)}>
-          <textarea
-            className={classes.textarea}
-            ref={(element: HTMLTextAreaElement) => {
-              setTextAreaElement(element);
+      <div
+        className={clsx("preview", classes.preview)}
+        ref={(element: HTMLElement) => {
+          setPreviewElement(element);
+        }}
+      ></div>
+      {!isPreview && (
+        <Box style={{ position: "absolute", top: "0", right: "0", zIndex: 99 }}>
+          <IconButton onClick={() => setEditDialogOpen(true)}>
+            <Pencil></Pencil>
+          </IconButton>
+          <IconButton
+            onClick={() => {
+              board.columns.forEach(column => {
+                column.cards = column.cards.filter(c => c.id !== card.id);
+              });
+              props.refreshBoard(board);
             }}
-          ></textarea>
-        </Box>
-
-        {description !== card.description && (
-          <Box
-          // style={{ position: "absolute", top: "0", right: "0", zIndex: 99 }}
           >
-            <IconButton
-              onClick={() => {
-                card.description = description;
-                props.refreshBoard(props.board);
-                setClickedPreview(false);
+            <Close></Close>
+          </IconButton>
+        </Box>
+      )}
+      <Dialog open={editorDialogOpen} onClose={() => setEditDialogOpen(false)}>
+        <DialogContent>
+          <Box
+            className={clsx(classes.editorWrapper)}
+            style={{ minWidth: "300px", maxWidth: "100%" }}
+          >
+            <textarea
+              className={classes.textarea}
+              ref={(element: HTMLTextAreaElement) => {
+                setTextAreaElement(element);
               }}
-            >
-              <ContentSave></ContentSave>
-            </IconButton>
-            <IconButton
-              onClick={() => {
-                if (editor) {
-                  editor.setValue(card.description);
-                }
-                setDescription(card.description);
-                setClickedPreview(false);
-              }}
-            >
-              <Cancel></Cancel>
-            </IconButton>
+            ></textarea>
           </Box>
-        )}
-      </CardContent>
+        </DialogContent>
+        <DialogActions>
+          <IconButton
+            onClick={() => {
+              card.description = description;
+              props.refreshBoard(props.board);
+              setEditDialogOpen(false);
+            }}
+          >
+            <ContentSave></ContentSave>
+          </IconButton>
+          <IconButton
+            onClick={() => {
+              if (editor) {
+                editor.setValue(card.description);
+              }
+              setDescription(card.description);
+              setEditDialogOpen(false);
+            }}
+          >
+            <Cancel></Cancel>
+          </IconButton>
+        </DialogActions>
+      </Dialog>
     </Card>
   );
 }
@@ -305,9 +307,13 @@ function KanbanWidget(props: WidgetArgs) {
   const { t } = useTranslation();
   const [board, setBoard] = useState<KanbanBoard>(
     props.attributes["board"] || {
-      lanes: []
+      columns: []
     }
   );
+
+  if ("lanes" in (board as any)) {
+    board.columns = (board as any).lanes;
+  }
 
   const refreshBoard = (board: KanbanBoard) => {
     const newBoard = Object.assign({}, board);
@@ -318,13 +324,13 @@ function KanbanWidget(props: WidgetArgs) {
   return (
     <div>
       <Board
-        renderLaneHeader={(lane: KanbanLane) => (
-          <KanbanLaneHeaderDisplay
-            lane={lane}
+        renderColumnHeader={(column: kanbanColumn) => (
+          <KanbanColumnHeaderDisplay
+            column={column}
             board={board}
             refreshBoard={refreshBoard}
             isPreview={props.isPreview}
-          ></KanbanLaneHeaderDisplay>
+          ></KanbanColumnHeaderDisplay>
         )}
         renderCard={(card: KanbanCard, { dragging }: { dragging: boolean }) => {
           return (
@@ -336,41 +342,71 @@ function KanbanWidget(props: WidgetArgs) {
             ></KanbanCardDisplay>
           );
         }}
-        allowAddLane={!props.isPreview}
-        onNewLaneConfirm={(newLane: any) => {
-          board.lanes.push({ id: Date.now(), ...newLane });
+        allowAddColumn={!props.isPreview}
+        allowAddCard={!props.isPreview}
+        renderColumnAdder={(): any => {
+          return (
+            <Box style={{ marginLeft: "16px", marginTop: "16px" }}>
+              <Button
+                color={"primary"}
+                variant={"outlined"}
+                onClick={() => {
+                  board.columns.push({
+                    id: Date.now(),
+                    title: t("general/untitled"),
+                    cards: [],
+                    wip: false
+                  });
+                  refreshBoard(board);
+                }}
+              >
+                <Plus></Plus>
+                {t("widget/crossnote.kanban/add-column")}
+              </Button>
+              <Button color={"primary"} onClick={() => props.removeSelf()}>
+                <TrashCan></TrashCan>
+              </Button>
+            </Box>
+          );
+          // return <ColumnAdder addColumn={addColumn} />;
+        }}
+        onNewColumnConfirm={(newColumn: any) => {
+          board.columns.push({ id: Date.now(), ...newColumn });
           refreshBoard(board);
         }}
         disableCardDrag={props.isPreview}
-        disableLaneDrag={props.isPreview}
+        disableColumnDrag={props.isPreview}
         onCardDragEnd={(
           card: KanbanCard,
-          source: { fromPosition: number; fromLaneId: number },
-          destination: { toPosition: number; toLaneId: number }
+          source: { fromPosition: number; fromColumnId: number },
+          destination: { toPosition: number; toColumnId: number }
         ) => {
-          const { fromPosition, fromLaneId } = source;
-          let { toPosition, toLaneId } = destination;
-          const fromLane = board.lanes.filter(l => l.id === fromLaneId)[0];
-          const toLane = board.lanes.filter(l => l.id === toLaneId)[0];
-          fromLane.cards.splice(fromPosition, 1);
-          toLane.cards = [
-            ...toLane.cards.slice(0, toPosition),
+          const { fromPosition, fromColumnId } = source;
+          let { toPosition, toColumnId } = destination;
+          const fromColumn = board.columns.filter(
+            l => l.id === fromColumnId
+          )[0];
+          const toColumn = board.columns.filter(l => l.id === toColumnId)[0];
+          fromColumn.cards.splice(fromPosition, 1);
+          toColumn.cards = [
+            ...toColumn.cards.slice(0, toPosition),
             card,
-            ...toLane.cards.slice(toPosition, toLane.cards.length)
+            ...toColumn.cards.slice(toPosition, toColumn.cards.length)
           ];
 
           refreshBoard(board);
         }}
-        onLaneDragEnd={(
+        onColumnDragEnd={(
+          b: KanbanBoard,
           source: { fromPosition: number },
           destination: { toPosition: number }
         ) => {
           const fromPosition: number = source.fromPosition;
           const toPosition: number = destination.toPosition;
-          const fromLane = board.lanes[fromPosition];
-          const toLane = board.lanes[toPosition];
-          board.lanes[toPosition] = fromLane;
-          board.lanes[fromPosition] = toLane;
+          const fromColumn = board.columns[fromPosition];
+          const toColumn = board.columns[toPosition];
+          board.columns[toPosition] = fromColumn;
+          board.columns[fromPosition] = toColumn;
           refreshBoard(board);
         }}
       >

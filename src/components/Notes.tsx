@@ -208,13 +208,17 @@ export default function Notes(props: Props) {
                 searchValue
                   .trim()
                   .split(/\s+/g)
-                  .map(s => "\\" + s.split("").join("\\"))
+                  // .map(s => "\\" + s.split("").join("\\"))
                   .join("|") +
                 ")",
               "i"
             );
 
-            if (note.markdown.match(regexp) || note.filePath.match(regexp)) {
+            if (
+              note.title.match(regexp) ||
+              note.markdown.match(regexp) ||
+              note.filePath.match(regexp)
+            ) {
               return (
                 <NoteCard
                   key={"note-card-" + note.filePath}
