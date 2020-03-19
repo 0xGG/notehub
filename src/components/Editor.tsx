@@ -17,9 +17,9 @@ import {
   TextField,
   ButtonGroup,
   IconButton,
-  Menu,
-  MenuList,
-  MenuItem
+  Popover,
+  List,
+  ListItem
 } from "@material-ui/core";
 import { Editor as CodeMirrorEditor, EditorChangeLinkedList } from "codemirror";
 import {
@@ -108,6 +108,9 @@ const useStyles = makeStyles((theme: Theme) =>
       },
       "& .CodeMirror-vscrollbar": {
         display: "none !important"
+      },
+      [theme.breakpoints.down("sm")]: {
+        padding: theme.spacing(1)
       }
     },
     fullScreen: {
@@ -132,7 +135,10 @@ const useStyles = makeStyles((theme: Theme) =>
       border: "none",
       overflow: "auto !important",
       padding: theme.spacing(2),
-      zIndex: 99
+      zIndex: 99,
+      [theme.breakpoints.down("sm")]: {
+        padding: theme.spacing(1)
+      }
       // gridArea: "2 / 2 / 3 / 3"
     },
     backBtn: {
@@ -265,10 +271,16 @@ export default function Editor(props: Props) {
   }, [note]);
 
   const addTag = useCallback(() => {
-    const tag = tagName.trim() || "";
+    let tag = tagName.trim() || "";
     if (!note || !tag.length || !editor) {
       return;
     }
+    tag = tag
+      .replace(/\s+/g, " ")
+      .split("/")
+      .map(t => t.trim())
+      .filter(x => x.length > 0)
+      .join("/");
     setTagNames(tagNames => {
       const newTagNames =
         tagNames.indexOf(tag) >= 0 ? [...tagNames] : [tag, ...tagNames];
@@ -276,6 +288,7 @@ export default function Editor(props: Props) {
       crossnoteContainer.updateNoteMarkdown(note, editor.getValue(), status => {
         setGitStatus(status);
       });
+      crossnoteContainer.updateNotebookTagNode();
       return newTagNames;
     });
     setTagName("");
@@ -293,6 +306,7 @@ export default function Editor(props: Props) {
             setGitStatus(status);
           }
         );
+        crossnoteContainer.updateNotebookTagNode();
         return newTagNames;
       });
     },
@@ -734,60 +748,67 @@ export default function Editor(props: Props) {
               </Tooltip>
             </ButtonGroup>
           )}
-          <Menu
+          <Popover
             open={Boolean(tagsMenuAnchorEl)}
             anchorEl={tagsMenuAnchorEl}
             keepMounted
             onClose={() => setTagsMenuAnchorEl(null)}
           >
-            <MenuItem
-              className={clsx(
-                classes.menuItemOverride,
-                classes.menuItemTextField
-              )}
-            >
-              <TextField
-                placeholder={"Add tag..."}
-                autoFocus={true}
-                value={tagName}
-                onChange={event => setTagName(event.target.value)}
-                onKeyUp={event => {
-                  if (event.which === 13) {
-                    addTag();
-                  }
-                }}
-              ></TextField>
-            </MenuItem>
-            {tagNames.length > 0 ? (
-              tagNames.map(tagName => {
-                return (
-                  <MenuItem
-                    key={tagName}
-                    className={clsx(classes.menuItemOverride)}
-                  >
-                    <Box
-                      style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        width: "100%"
-                      }}
+            <List>
+              <ListItem
+                className={clsx(
+                  classes.menuItemOverride,
+                  classes.menuItemTextField
+                )}
+              >
+                <TextField
+                  placeholder={"Add tag..."}
+                  autoFocus={true}
+                  value={tagName}
+                  onChange={event => {
+                    event.stopPropagation();
+                    setTagName(event.target.value);
+                  }}
+                  onKeyUp={event => {
+                    if (event.which === 13) {
+                      addTag();
+                    }
+                  }}
+                ></TextField>
+              </ListItem>
+              {tagNames.length > 0 ? (
+                tagNames.map(tagName => {
+                  return (
+                    <ListItem
+                      key={tagName}
+                      className={clsx(classes.menuItemOverride)}
                     >
-                      <Typography>{tagName}</Typography>
-                      <IconButton onClick={() => deleteTag(tagName)}>
-                        <Close></Close>
-                      </IconButton>
-                    </Box>
-                  </MenuItem>
-                );
-              })
-            ) : (
-              <MenuItem className={clsx(classes.menuItemOverride)}>
-                <Typography>{"No tags"}</Typography>
-              </MenuItem>
-            )}
-          </Menu>
+                      <Box
+                        style={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          width: "100%"
+                        }}
+                      >
+                        <Typography>{tagName}</Typography>
+                        <IconButton onClick={() => deleteTag(tagName)}>
+                          <Close></Close>
+                        </IconButton>
+                      </Box>
+                    </ListItem>
+                  );
+                })
+              ) : (
+                <ListItem className={clsx(classes.menuItemOverride)}>
+                  <Typography style={{ margin: "8px 0" }}>
+                    {"No tags"}
+                  </Typography>
+                </ListItem>
+              )}
+            </List>
+          </Popover>
         </Box>
       </Box>
       <Box

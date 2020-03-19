@@ -36,6 +36,13 @@ export interface Directory {
   children?: Directory[];
 }
 
+export interface TagNode {
+  name: string;
+  path: string;
+  children?: TagNode[];
+  // numNotes: number;
+}
+
 export interface NoteConfig {
   id?: string;
   createdAt: Date;
@@ -772,6 +779,42 @@ export default class Crossnote {
     });
 
     return rootDirectory;
+  }
+
+  public getNotebookTagNodeFromNotes(notes: Note[]): TagNode {
+    const rootTagNode: TagNode = {
+      name: ".",
+      path: ".",
+      children: []
+    };
+
+    for (let i = 0; i < notes.length; i++) {
+      const note = notes[i];
+      const tags = note.config.tags || [];
+      tags.forEach(tag => {
+        let node = rootTagNode;
+        tag.split("/").forEach((t, index) => {
+          t = t.toLocaleLowerCase().replace(/\s+/g, " ");
+          const offset = node.children.findIndex(c => c.name === t);
+          if (offset >= 0) {
+            node = node.children[offset];
+          } else {
+            const newNode: TagNode = {
+              name: t,
+              path: node.name === "." ? t : node.path + "/" + t,
+              children: []
+            };
+            node.children.push(newNode);
+            node.children.sort((x, y) => x.name.localeCompare(y.name));
+            node = newNode;
+          }
+        });
+      });
+    }
+
+    console.log("rootTagNode: ", rootTagNode);
+
+    return rootTagNode;
   }
 
   private getDefaultNotebookNameFromGitURL(gitURL: string) {

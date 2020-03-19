@@ -6,7 +6,10 @@ import {
   Theme
 } from "@material-ui/core/styles";
 import clsx from "clsx";
-import { CrossnoteContainer } from "../containers/crossnote";
+import {
+  CrossnoteContainer,
+  SelectedSectionType
+} from "../containers/crossnote";
 import {
   Box,
   InputBase,
@@ -24,8 +27,6 @@ import {
 } from "mdi-material-ui";
 import { useTranslation } from "react-i18next";
 import ConfigureNotebookDialog from "./ConfigureNotebookDialog";
-
-const OneDay = 1000 * 60 * 60 * 24;
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -143,7 +144,8 @@ export default function Notes(props: Props) {
           className={clsx(classes.row)}
           style={{ justifyContent: "space-between" }}
         >
-          {crossnoteContainer.selectedDir === "$notes" ? (
+          {crossnoteContainer.selectedSection.type ===
+          SelectedSectionType.Notes ? (
             <Box className={clsx(classes.row)}>
               <span role="img" aria-label="notes">
                 📒
@@ -153,7 +155,8 @@ export default function Notes(props: Props) {
                   crossnoteContainer.selectedNotebook.name}
               </Typography>
             </Box>
-          ) : crossnoteContainer.selectedDir === "$today" ? (
+          ) : crossnoteContainer.selectedSection.type ===
+            SelectedSectionType.Today ? (
             <Box className={clsx(classes.row)}>
               <span role="img" aria-label="today-notes">
                 🗓
@@ -162,7 +165,8 @@ export default function Notes(props: Props) {
                 {" today"}
               </Typography>
             </Box>
-          ) : crossnoteContainer.selectedDir === "$todo" ? (
+          ) : crossnoteContainer.selectedSection.type ===
+            SelectedSectionType.Todo ? (
             <Box className={clsx(classes.row)}>
               <span role="img" aria-label="todo-notes">
                 ☑️
@@ -171,20 +175,52 @@ export default function Notes(props: Props) {
                 {" todo"}
               </Typography>
             </Box>
+          ) : crossnoteContainer.selectedSection.type ===
+            SelectedSectionType.Tagged ? (
+            <Box className={clsx(classes.row)}>
+              <span role="img" aria-label="tagged-notes">
+                🏷️
+              </span>
+              <Typography className={clsx(classes.sectionName)}>
+                {" tagged"}
+              </Typography>
+            </Box>
+          ) : crossnoteContainer.selectedSection.type ===
+            SelectedSectionType.Untagged ? (
+            <Box className={clsx(classes.row)}>
+              <span role="img" aria-label="untagged-notes">
+                🈚
+              </span>
+              <Typography className={clsx(classes.sectionName)}>
+                {" untagged"}
+              </Typography>
+            </Box>
+          ) : crossnoteContainer.selectedSection.type ===
+            SelectedSectionType.Tag ? (
+            <Box className={clsx(classes.row)}>
+              <span role="img" aria-label="tag">
+                🏷️
+              </span>
+              <Typography className={clsx(classes.sectionName)}>
+                {crossnoteContainer.selectedSection.path}
+              </Typography>
+            </Box>
           ) : (
-            crossnoteContainer.selectedDir && (
+            crossnoteContainer.selectedSection.type ===
+              SelectedSectionType.Directory && (
               <Box className={clsx(classes.row)}>
                 <span role="img" aria-label="folder">
                   {"📁"}
                 </span>
                 <Typography className={clsx(classes.sectionName)}>
-                  {crossnoteContainer.selectedDir}
+                  {crossnoteContainer.selectedSection.path}
                 </Typography>
               </Box>
             )
           )}
 
-          {crossnoteContainer.selectedDir === "$notes" && (
+          {crossnoteContainer.selectedSection.type ===
+            SelectedSectionType.Notes && (
             <IconButton
               onClick={() => setNotebookConfigurationDialogOpen(true)}
             >
