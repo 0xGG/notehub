@@ -281,7 +281,8 @@ export default function Editor(props: Props) {
     tag = tag
       .replace(/\s+/g, " ")
       .split("/")
-      .filter(x => x.trim().length > 0)
+      .map(t => t.trim())
+      .filter(x => x.length > 0)
       .join("/");
     setTagNames(tagNames => {
       const newTagNames =
