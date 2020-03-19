@@ -7,6 +7,7 @@ import { randomID } from "../utilities/utils";
 import { getHeaderFromMarkdown } from "../utilities/note";
 import { Stats } from "fs";
 import * as matter from "gray-matter";
+import { tmpdir } from "os";
 
 export interface Notebook {
   _id: string;
@@ -40,7 +41,7 @@ export interface TagNode {
   name: string;
   path: string;
   children?: TagNode[];
-  numNotes: number;
+  // numNotes: number;
 }
 
 export interface NoteConfig {
@@ -781,13 +782,38 @@ export default class Crossnote {
     return rootDirectory;
   }
 
-  public getTagNodeFromNotes(notes: Note[]): TagNode {
+  public getNotebookTagNodeFromNotes(notes: Note[]): TagNode {
     const rootTagNode: TagNode = {
       name: ".",
       path: ".",
-      children: [],
-      numNotes: 0
+      children: []
     };
+
+    for (let i = 0; i < notes.length; i++) {
+      const note = notes[i];
+      const tags = note.config.tags || [];
+      tags.forEach(tag => {
+        let node = rootTagNode;
+        tag.split("/").forEach((t, index) => {
+          t = t.toLocaleLowerCase().replace(/\s+/g, " ");
+          const offset = node.children.findIndex(c => c.name === t);
+          if (offset >= 0) {
+            node = node.children[offset];
+          } else {
+            const newNode: TagNode = {
+              name: t,
+              path: node.name === "." ? t : node.path + "/" + t,
+              children: []
+            };
+            node.children.push(newNode);
+            node.children.sort((x, y) => x.name.localeCompare(y.name));
+            node = newNode;
+          }
+        });
+      });
+    }
+
+    console.log("rootTagNode: ", rootTagNode);
 
     return rootTagNode;
   }

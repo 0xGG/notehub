@@ -10,8 +10,24 @@ import Crossnote, {
   Directory,
   NoteConfig,
   PushNotebookArgs,
-  PullNotebookArgs
+  PullNotebookArgs,
+  TagNode
 } from "../lib/crossnote";
+
+export enum SelectedSectionType {
+  Notes = "Notes",
+  Today = "Today",
+  Todo = "Todo",
+  Tagged = "Tagged",
+  Untagged = "Untagged",
+  Directory = "Directory",
+  Tag = "Tag"
+}
+
+export interface SelectedSection {
+  type: SelectedSectionType;
+  path?: string;
+}
 
 interface InitialState {
   crossnote: Crossnote;
@@ -28,12 +44,19 @@ function useCrossnoteContainer(initialState: InitialState) {
     path: ".",
     children: []
   });
+  const [notebookTagNode, setNotebookTagNode] = useState<TagNode>({
+    name: ".",
+    path: ".",
+    children: []
+  });
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note>(null);
   const [includeSubdirectories, setIncludeSubdirectories] = useState<boolean>(
     true
   );
-  const [selectedDir, setSelectedDir] = useState<string>("$notes"); // $notes | $todau | $todo | real directory
+  const [selectedSection, setSelectedSection] = useState<SelectedSection>({
+    type: SelectedSectionType.Notes
+  }); // $notes | $todau | $todo | real directory
   const [isAddingNotebook, setIsAddingNotebook] = useState<boolean>(false);
   const [isPushingNotebook, setIsPushingNotebook] = useState<boolean>(false);
   const [isPullingNotebook, setIsPullingNotebook] = useState<boolean>(false);
@@ -80,6 +103,8 @@ function useCrossnoteContainer(initialState: InitialState) {
           .then(directories => {
             setNotebookDirectories(directories);
           });
+
+        setNotebookTagNode(crossnote.getNotebookTagNodeFromNotes(newNotes));
         return newNotes;
       });
       setDisplayMobileEditor(false);
@@ -109,6 +134,7 @@ function useCrossnoteContainer(initialState: InitialState) {
           setNotebookDirectories(
             await crossnote.getNotebookDirectoriesFromNotes(newNotes)
           );
+          setNotebookTagNode(crossnote.getNotebookTagNodeFromNotes(newNotes));
         } catch (error) {
           new Noty({
             type: "error",
@@ -132,26 +158,30 @@ function useCrossnoteContainer(initialState: InitialState) {
         if (!fileName.endsWith(".md")) {
           fileName = fileName + ".md";
         }
-        let dir = selectedDir;
+        let dir = selectedSection;
         let filePath;
+        let tags: string[] = [];
         if (
-          selectedDir === "$notes" ||
-          selectedDir === "$today" ||
-          selectedDir === "$todo" ||
-          selectedDir === "$tagged" ||
-          selectedDir === "$untagged"
+          selectedSection.type === SelectedSectionType.Notes ||
+          selectedSection.type === SelectedSectionType.Today ||
+          selectedSection.type === SelectedSectionType.Todo ||
+          selectedSection.type === SelectedSectionType.Tagged ||
+          selectedSection.type === SelectedSectionType.Untagged
         ) {
           filePath = fileName;
+        } else if (selectedSection.type === SelectedSectionType.Tag) {
+          filePath = fileName;
+          tags = [selectedSection.path];
         } else {
           filePath = path.relative(
             selectedNotebook.dir,
-            path.resolve(selectedNotebook.dir, dir, fileName)
+            path.resolve(selectedNotebook.dir, selectedSection.path, fileName)
           );
         }
 
         const noteConfig: NoteConfig = {
           id: "",
-          tags: [],
+          tags: tags,
           modifiedAt: new Date(),
           createdAt: new Date()
         };
@@ -168,7 +198,7 @@ function useCrossnoteContainer(initialState: InitialState) {
         setDisplayMobileEditor(true);
       })();
     },
-    [selectedNotebook, crossnote, selectedDir]
+    [selectedNotebook, crossnote, selectedSection]
   );
 
   const addNotebook = useCallback(
@@ -277,6 +307,8 @@ function useCrossnoteContainer(initialState: InitialState) {
         setNotebookDirectories(
           await crossnote.getNotebookDirectoriesFromNotes(notes)
         );
+        setNotebookTagNode(crossnote.getNotebookTagNodeFromNotes(notes));
+
         if (!notes.find(n => n.filePath === selectedNote.filePath)) {
           setSelectedNote(notes[0]); // TODO: pull might remove currently selectedNote
         }
@@ -323,6 +355,7 @@ function useCrossnoteContainer(initialState: InitialState) {
             .then(directories => {
               setNotebookDirectories(directories);
             });
+          setNotebookTagNode(crossnote.getNotebookTagNodeFromNotes(newNotes));
           return newNotes;
         });
         setNotes(notes => {
@@ -334,6 +367,11 @@ function useCrossnoteContainer(initialState: InitialState) {
     },
     [crossnote]
   );
+
+  const updateNotebookTagNode = useCallback(() => {
+    if (!crossnote) return;
+    setNotebookTagNode(crossnote.getNotebookTagNodeFromNotes(notebookNotes));
+  }, [notebookNotes, crossnote]);
 
   useEffect(() => {
     if (!crossnote) {
@@ -387,13 +425,14 @@ function useCrossnoteContainer(initialState: InitialState) {
       setNotebookDirectories(
         await crossnote.getNotebookDirectoriesFromNotes(notes)
       );
+      setNotebookTagNode(crossnote.getNotebookTagNodeFromNotes(notes));
       setSelectedNote(notes[0]);
     })();
   }, [crossnote, selectedNotebook]);
 
   useEffect(() => {
     if (crossnote && selectedNotebook) {
-      setSelectedDir("$notes");
+      setSelectedSection({ type: SelectedSectionType.Notes });
     }
   }, [crossnote, selectedNotebook]);
 
@@ -407,28 +446,39 @@ function useCrossnoteContainer(initialState: InitialState) {
       }
 
       let notes: Note[] = [];
-      if (selectedDir === "$notes") {
+      if (selectedSection.type === SelectedSectionType.Notes) {
         notes = [...notebookNotes];
-      } else if (selectedDir === "$todo") {
+      } else if (selectedSection.type === SelectedSectionType.Todo) {
         notes = notebookNotes.filter(note =>
           note.markdown.match(/(\*|-|\d+\.)\s\[(\s+|x|X)\]\s/gm)
         );
-      } else if (selectedDir === "$today") {
+      } else if (selectedSection.type === SelectedSectionType.Today) {
         notes = notebookNotes.filter(
           note => Date.now() - note.config.modifiedAt.getTime() <= OneDay
         );
-      } else if (selectedDir === "$tagged") {
+      } else if (selectedSection.type === SelectedSectionType.Tagged) {
         notes = notebookNotes.filter(note => note.config.tags.length > 0);
-      } else if (selectedDir === "$untagged") {
+      } else if (selectedSection.type === SelectedSectionType.Untagged) {
         notes = notebookNotes.filter(note => note.config.tags.length === 0);
+      } else if (selectedSection.type === SelectedSectionType.Tag) {
+        notes = notebookNotes.filter(note => {
+          const tags = note.config.tags;
+          return tags.find(
+            tag =>
+              (tag.toLocaleLowerCase() + "/").indexOf(
+                selectedSection.path + "/"
+              ) === 0
+          );
+        });
       } else {
+        // SelectedSectionType.Directory
         if (includeSubdirectories) {
           notes = notebookNotes.filter(
-            note => note.filePath.indexOf(selectedDir + "/") === 0
+            note => note.filePath.indexOf(selectedSection + "/") === 0
           );
         } else {
           notes = notebookNotes.filter(
-            note => path.dirname(note.filePath) === selectedDir
+            note => path.dirname(note.filePath) === selectedSection.path
           );
         }
       }
@@ -439,7 +489,7 @@ function useCrossnoteContainer(initialState: InitialState) {
       }
     }
   }, [
-    selectedDir,
+    selectedSection,
     crossnote,
     selectedNotebook,
     includeSubdirectories,
@@ -465,13 +515,14 @@ function useCrossnoteContainer(initialState: InitialState) {
     setSelectedNote,
     updateNoteMarkdown,
     createNewNote,
-    selectedDir,
-    setSelectedDir,
+    selectedSection,
+    setSelectedSection,
     includeSubdirectories,
     setIncludeSubdirectories,
     deleteNote,
     changeNoteFilePath,
     notebookDirectories,
+    notebookTagNode,
     addNotebook,
     isAddingNotebook,
     isPushingNotebook,
@@ -482,7 +533,8 @@ function useCrossnoteContainer(initialState: InitialState) {
     pullNotebook,
     checkoutNote,
     displayMobileEditor,
-    setDisplayMobileEditor
+    setDisplayMobileEditor,
+    updateNotebookTagNode
   };
 }
 

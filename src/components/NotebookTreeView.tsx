@@ -4,9 +4,12 @@ import clsx from "clsx";
 import React, { useState, useCallback, useEffect } from "react";
 import { IconButton, Box, Typography } from "@material-ui/core";
 import { ChevronRight, ChevronDown } from "mdi-material-ui";
-import { CrossnoteContainer } from "../containers/crossnote";
+import {
+  CrossnoteContainer,
+  SelectedSectionType
+} from "../containers/crossnote";
 import { useTranslation } from "react-i18next";
-import { Directory, Notebook } from "../lib/crossnote";
+import { Directory, Notebook, TagNode } from "../lib/crossnote";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -88,6 +91,9 @@ export default function NotebookTreeView(props: Props) {
     directory: Directory
   ) => {
     if (directory.name === ".") {
+      if (directory.children.length === 0) {
+        return null;
+      }
       return (
         <>{directory.children.map(dir => constructDirectoryTreeItems(dir))}</>
       );
@@ -107,7 +113,10 @@ export default function NotebookTreeView(props: Props) {
           label={
             <Box
               onClick={() => {
-                crossnoteContainer.setSelectedDir(directory.path);
+                crossnoteContainer.setSelectedSection({
+                  type: SelectedSectionType.Directory,
+                  path: directory.path
+                });
               }}
               className={clsx(classes.treeItemLabelRoot)}
             >
@@ -125,6 +134,58 @@ export default function NotebookTreeView(props: Props) {
           }
         >
           {directory.children.map(dir => constructDirectoryTreeItems(dir))}
+        </TreeItem>
+      );
+    }
+  };
+
+  const constructTagNodeTreeItems: (tagNode: TagNode) => any = (
+    tagNode: TagNode
+  ) => {
+    if (tagNode.name === ".") {
+      if (tagNode.children.length === 0) {
+        return null;
+      }
+      return (
+        <>{tagNode.children.map(node => constructTagNodeTreeItems(node))}</>
+      );
+    } else {
+      return (
+        <TreeItem
+          nodeId={tagNode.path}
+          classes={{
+            root: classes.treeItemRoot,
+            content: classes.treeItemContent,
+            expanded: classes.treeItemExpanded,
+            group: classes.treeItemGroup,
+            label: classes.treeItemLabel
+          }}
+          endIcon={<div style={{ width: 24 }}></div>}
+          key={tagNode.path}
+          label={
+            <Box
+              onClick={() => {
+                crossnoteContainer.setSelectedSection({
+                  type: SelectedSectionType.Tag,
+                  path: tagNode.path
+                });
+              }}
+              className={clsx(classes.treeItemLabelRoot)}
+            >
+              <span role="img" aria-label="folder">
+                {"🏷️"}
+              </span>
+              <Typography
+                color={"inherit"}
+                variant={"body1"}
+                className={clsx(classes.treeItemLabelText)}
+              >
+                {tagNode.name}
+              </Typography>
+            </Box>
+          }
+        >
+          {tagNode.children.map(dir => constructTagNodeTreeItems(dir))}
         </TreeItem>
       );
     }
@@ -174,7 +235,9 @@ export default function NotebookTreeView(props: Props) {
           <Box
             onClick={() => {
               crossnoteContainer.setSelectedNotebook(props.notebook);
-              crossnoteContainer.setSelectedDir("$notes");
+              crossnoteContainer.setSelectedSection({
+                type: SelectedSectionType.Notes
+              });
             }}
             className={clsx(classes.treeItemLabelRoot)}
           >
@@ -204,7 +267,9 @@ export default function NotebookTreeView(props: Props) {
           label={
             <Box
               onClick={() => {
-                crossnoteContainer.setSelectedDir("$today");
+                crossnoteContainer.setSelectedSection({
+                  type: SelectedSectionType.Today
+                });
               }}
               className={clsx(classes.treeItemLabelRoot)}
             >
@@ -229,7 +294,9 @@ export default function NotebookTreeView(props: Props) {
           label={
             <Box
               onClick={() => {
-                crossnoteContainer.setSelectedDir("$todo");
+                crossnoteContainer.setSelectedSection({
+                  type: SelectedSectionType.Todo
+                });
               }}
               className={clsx(classes.treeItemLabelRoot)}
             >
@@ -254,7 +321,9 @@ export default function NotebookTreeView(props: Props) {
           label={
             <Box
               onClick={() => {
-                crossnoteContainer.setSelectedDir("$notes");
+                crossnoteContainer.setSelectedSection({
+                  type: SelectedSectionType.Notes
+                });
               }}
               className={clsx(classes.treeItemLabelRoot)}
             >
@@ -281,7 +350,9 @@ export default function NotebookTreeView(props: Props) {
           label={
             <Box
               onClick={() => {
-                crossnoteContainer.setSelectedDir("$tagged");
+                crossnoteContainer.setSelectedSection({
+                  type: SelectedSectionType.Tagged
+                });
               }}
               className={clsx(classes.treeItemLabelRoot)}
             >
@@ -293,7 +364,9 @@ export default function NotebookTreeView(props: Props) {
               </Typography>
             </Box>
           }
-        ></TreeItem>
+        >
+          {constructTagNodeTreeItems(crossnoteContainer.notebookTagNode)}
+        </TreeItem>
         <TreeItem
           nodeId={"untagged-notes"}
           classes={{
@@ -306,7 +379,9 @@ export default function NotebookTreeView(props: Props) {
           label={
             <Box
               onClick={() => {
-                crossnoteContainer.setSelectedDir("$untagged");
+                crossnoteContainer.setSelectedSection({
+                  type: SelectedSectionType.Untagged
+                });
               }}
               className={clsx(classes.treeItemLabelRoot)}
             >
