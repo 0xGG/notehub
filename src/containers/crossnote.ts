@@ -137,7 +137,9 @@ function useCrossnoteContainer(initialState: InitialState) {
         if (
           selectedDir === "$notes" ||
           selectedDir === "$today" ||
-          selectedDir === "$todo"
+          selectedDir === "$todo" ||
+          selectedDir === "$tagged" ||
+          selectedDir === "$untagged"
         ) {
           filePath = fileName;
         } else {
@@ -415,6 +417,10 @@ function useCrossnoteContainer(initialState: InitialState) {
         notes = notebookNotes.filter(
           note => Date.now() - note.config.modifiedAt.getTime() <= OneDay
         );
+      } else if (selectedDir === "$tagged") {
+        notes = notebookNotes.filter(note => note.config.tags.length > 0);
+      } else if (selectedDir === "$untagged") {
+        notes = notebookNotes.filter(note => note.config.tags.length === 0);
       } else {
         if (includeSubdirectories) {
           notes = notebookNotes.filter(

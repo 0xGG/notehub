@@ -269,6 +269,56 @@ export default function NotebookTreeView(props: Props) {
         >
           {constructDirectoryTreeItems(crossnoteContainer.notebookDirectories)}
         </TreeItem>
+        <TreeItem
+          nodeId={"tagged-notes"}
+          classes={{
+            root: classes.treeItemRoot,
+            content: classes.treeItemContent,
+            expanded: classes.treeItemExpanded,
+            group: classes.treeItemGroup,
+            label: classes.treeItemLabel
+          }}
+          label={
+            <Box
+              onClick={() => {
+                crossnoteContainer.setSelectedDir("$tagged");
+              }}
+              className={clsx(classes.treeItemLabelRoot)}
+            >
+              <span role="img" aria-label="tagged-notes">
+                🏷️
+              </span>
+              <Typography className={clsx(classes.treeItemLabelText)}>
+                {"tagged"}
+              </Typography>
+            </Box>
+          }
+        ></TreeItem>
+        <TreeItem
+          nodeId={"untagged-notes"}
+          classes={{
+            root: classes.treeItemRoot,
+            content: classes.treeItemContent,
+            expanded: classes.treeItemExpanded,
+            group: classes.treeItemGroup,
+            label: classes.treeItemLabel
+          }}
+          label={
+            <Box
+              onClick={() => {
+                crossnoteContainer.setSelectedDir("$untagged");
+              }}
+              className={clsx(classes.treeItemLabelRoot)}
+            >
+              <span role="img" aria-label="untagged-notes">
+                🈚
+              </span>
+              <Typography className={clsx(classes.treeItemLabelText)}>
+                {"untagged"}
+              </Typography>
+            </Box>
+          }
+        ></TreeItem>
       </TreeItem>
     </TreeView>
   );

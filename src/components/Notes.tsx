@@ -171,6 +171,24 @@ export default function Notes(props: Props) {
                 {" todo"}
               </Typography>
             </Box>
+          ) : crossnoteContainer.selectedDir === "$tagged" ? (
+            <Box className={clsx(classes.row)}>
+              <span role="img" aria-label="tagged-notes">
+                🏷️
+              </span>
+              <Typography className={clsx(classes.sectionName)}>
+                {" tagged"}
+              </Typography>
+            </Box>
+          ) : crossnoteContainer.selectedDir === "$untagged" ? (
+            <Box className={clsx(classes.row)}>
+              <span role="img" aria-label="untagged-notes">
+                🈚
+              </span>
+              <Typography className={clsx(classes.sectionName)}>
+                {" untagged"}
+              </Typography>
+            </Box>
           ) : (
             crossnoteContainer.selectedDir && (
               <Box className={clsx(classes.row)}>

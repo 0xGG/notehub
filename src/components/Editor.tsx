@@ -108,6 +108,9 @@ const useStyles = makeStyles((theme: Theme) =>
       },
       "& .CodeMirror-vscrollbar": {
         display: "none !important"
+      },
+      [theme.breakpoints.down("sm")]: {
+        padding: theme.spacing(1)
       }
     },
     fullScreen: {
@@ -132,7 +135,10 @@ const useStyles = makeStyles((theme: Theme) =>
       border: "none",
       overflow: "auto !important",
       padding: theme.spacing(2),
-      zIndex: 99
+      zIndex: 99,
+      [theme.breakpoints.down("sm")]: {
+        padding: theme.spacing(1)
+      }
       // gridArea: "2 / 2 / 3 / 3"
     },
     backBtn: {
@@ -265,10 +271,14 @@ export default function Editor(props: Props) {
   }, [note]);
 
   const addTag = useCallback(() => {
-    const tag = tagName.trim() || "";
+    let tag = tagName.trim() || "";
     if (!note || !tag.length || !editor) {
       return;
     }
+    tag = tag
+      .split("/")
+      .filter(x => x.trim().length > 0)
+      .join("/");
     setTagNames(tagNames => {
       const newTagNames =
         tagNames.indexOf(tag) >= 0 ? [...tagNames] : [tag, ...tagNames];

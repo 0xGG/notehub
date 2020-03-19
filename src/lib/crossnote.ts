@@ -36,6 +36,13 @@ export interface Directory {
   children?: Directory[];
 }
 
+export interface TagNode {
+  name: string;
+  path: string;
+  children?: TagNode[];
+  numNotes: number;
+}
+
 export interface NoteConfig {
   id?: string;
   createdAt: Date;
@@ -772,6 +779,17 @@ export default class Crossnote {
     });
 
     return rootDirectory;
+  }
+
+  public getTagNodeFromNotes(notes: Note[]): TagNode {
+    const rootTagNode: TagNode = {
+      name: ".",
+      path: ".",
+      children: [],
+      numNotes: 0
+    };
+
+    return rootTagNode;
   }
 
   private getDefaultNotebookNameFromGitURL(gitURL: string) {
