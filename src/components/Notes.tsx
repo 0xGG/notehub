@@ -28,8 +28,6 @@ import {
 import { useTranslation } from "react-i18next";
 import ConfigureNotebookDialog from "./ConfigureNotebookDialog";
 
-const OneDay = 1000 * 60 * 60 * 24;
-
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     notes: {

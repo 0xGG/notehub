@@ -7,7 +7,6 @@ import { randomID } from "../utilities/utils";
 import { getHeaderFromMarkdown } from "../utilities/note";
 import { Stats } from "fs";
 import * as matter from "gray-matter";
-import { tmpdir } from "os";
 
 export interface Notebook {
   _id: string;
