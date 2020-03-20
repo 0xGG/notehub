@@ -3,15 +3,9 @@ import { UUIDNil } from "./utils";
 export interface Summary {
   title: string;
   summary: string;
-  coverImage: string;
   images: string[]; // If has `title`, then images[0] is cover.
-  /**
-   * HTML code for video.
-   */
-  video: string;
   tags: string[]; // TODO: support tags
   html: string; // original html
-  hasMoreContent?: boolean; // has more content => display `continue reading`
 }
 
 /*
@@ -73,10 +67,7 @@ export async function generateSummaryFromMarkdown(
 ): Promise<Summary> {
   let title = "",
     summary = "",
-    coverImage = "",
-    images: string[] = [],
-    hasMoreContent = true;
-
+    images: string[] = [];
   markdown = markdown.replace(/^---.+?\n---/, ""); // Remove front matter
   let contentString = markdown;
 
@@ -93,11 +84,10 @@ export async function generateSummaryFromMarkdown(
     const coverMatch = aheadString.match(/^!\[.*?\]\(.+?\)/gim);
     if (coverMatch && coverMatch.length) {
       images.push(coverMatch[0].match(/\(([^)"]+?)\)/)[1].trim());
-      coverImage = images[0];
     }
   }
 
-  const coverImagesMatch = markdown.match(/^!\[\s*cover\s*\]\(.+?\)/gim);
+  const coverImagesMatch = markdown.match(/^!\[.*?\]\(.+?\)/gim);
   if (coverImagesMatch && coverImagesMatch.length) {
     coverImagesMatch.forEach(mdImage => {
       images.push(mdImage.match(/\(([^)"]+?)\)/)[1].trim());
@@ -122,12 +112,9 @@ export async function generateSummaryFromMarkdown(
   return {
     title,
     summary,
-    coverImage,
     images,
     tags: [],
-    html: "",
-    hasMoreContent,
-    video: ""
+    html: ""
   };
 }
 
