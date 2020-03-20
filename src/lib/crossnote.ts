@@ -484,6 +484,7 @@ export default class Crossnote {
       };
     }
 
+    /*
     // Pull notebook first
     await this.pullNotebook({
       notebook,
@@ -492,6 +493,7 @@ export default class Crossnote {
       onAuthSuccess,
       onMessage
     });
+    */
 
     const logs = await git.log({
       fs: this.fs,
@@ -584,6 +586,20 @@ export default class Crossnote {
     onAuthSuccess,
     onMessage
   }: PullNotebookArgs) {
+    /*
+    // NOTE: Seems like diff3 not working as I expected. Therefore I might create my own type of diff
+    const stagedFiles = await git.listFiles({ fs: this.fs, dir: notebook.dir });
+    for (let i = 0; i < stagedFiles.length; i++) {
+      const status = await git.status({
+        fs: this.fs,
+        dir: notebook.dir,
+        filepath: stagedFiles[i]
+      });
+      if (status.match(/^\*?(modified|added)/)) {
+        console.log(stagedFiles[i], status);
+      }
+    }*/
+
     await git.pull({
       fs: this.fs,
       http,
@@ -595,7 +611,7 @@ export default class Crossnote {
         name: "anonymous",
         email: "anonymous@crossnote.app"
       },
-      fastForwardOnly: true,
+      // fastForwardOnly: true,
       onAuth: (url, auth) => {
         return {
           username: notebook.gitUsername,
