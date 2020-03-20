@@ -41,12 +41,12 @@ const useStyles = makeStyles((theme: Theme) =>
       borderBottom: "1px solid #ededed"
     },
     header: {
-      marginBottom: theme.spacing(2),
+      marginBottom: theme.spacing(1),
       wordBreak: "break-all"
     },
     summary: {
       color: theme.palette.text.secondary,
-      marginBottom: theme.spacing(2),
+      marginBottom: theme.spacing(1),
       paddingRight: theme.spacing(2),
       display: "-webkit-box",
       lineHeight: "1.3rem !important",
@@ -161,7 +161,7 @@ export default function NoteCard(props: Props) {
             {header}
           </Typography>
         )}
-        {summary && (
+        {summary && summary.summary.trim().length > 0 && (
           <Typography className={clsx(classes.summary)}>
             {summary && summary.summary}
           </Typography>
@@ -171,6 +171,7 @@ export default function NoteCard(props: Props) {
             <Box className={clsx(classes.imagesWrapper)}>
               {images.map(image => (
                 <div
+                  key={image}
                   className={clsx(classes.image)}
                   style={{
                     backgroundImage: `url(${image})`
