@@ -21,7 +21,8 @@ export enum SelectedSectionType {
   Tagged = "Tagged",
   Untagged = "Untagged",
   Directory = "Directory",
-  Tag = "Tag"
+  Tag = "Tag",
+  Conflicted = "Conflicted"
 }
 
 export interface SelectedSection {
