@@ -205,6 +205,16 @@ export default function Notes(props: Props) {
                 {crossnoteContainer.selectedSection.path}
               </Typography>
             </Box>
+          ) : crossnoteContainer.selectedSection.type ===
+            SelectedSectionType.Conflicted ? (
+            <Box className={clsx(classes.row)}>
+              <span role="img" aria-label="conflicted-notes">
+                ⚠️
+              </span>
+              <Typography className={clsx(classes.sectionName)}>
+                {" conflicted"}
+              </Typography>
+            </Box>
           ) : (
             crossnoteContainer.selectedSection.type ===
               SelectedSectionType.Directory && (

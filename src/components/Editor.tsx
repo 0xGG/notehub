@@ -365,6 +365,7 @@ export default function Editor(props: Props) {
         const markdown = editor.getValue();
         crossnoteContainer.updateNoteMarkdown(note, markdown, status => {
           setGitStatus(status);
+          setTagNames(note.config.tags); // After resolve conflicts
         });
       };
       editor.on("changes", handler);

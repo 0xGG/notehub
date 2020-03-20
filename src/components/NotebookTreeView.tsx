@@ -394,6 +394,33 @@ export default function NotebookTreeView(props: Props) {
             </Box>
           }
         ></TreeItem>
+        <TreeItem
+          nodeId={"conflicted-notes"}
+          classes={{
+            root: classes.treeItemRoot,
+            content: classes.treeItemContent,
+            expanded: classes.treeItemExpanded,
+            group: classes.treeItemGroup,
+            label: classes.treeItemLabel
+          }}
+          label={
+            <Box
+              onClick={() => {
+                crossnoteContainer.setSelectedSection({
+                  type: SelectedSectionType.Conflicted
+                });
+              }}
+              className={clsx(classes.treeItemLabelRoot)}
+            >
+              <span role="img" aria-label="conflicted-notes">
+                ⚠️
+              </span>
+              <Typography className={clsx(classes.treeItemLabelText)}>
+                {"conflicted"}
+              </Typography>
+            </Box>
+          }
+        ></TreeItem>
       </TreeItem>
     </TreeView>
   );

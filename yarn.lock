@@ -4462,10 +4462,10 @@ codecs@^1.2.0, codecs@^1.2.1:
   resolved "https://registry.npm.taobao.org/codecs/download/codecs-1.2.1.tgz#10155c751578919883bd87e425db04af86a0188c"
   integrity sha1-EBVcdRV4kZiDvYfkJdsEr4agGIw=
 
-codemirror@^5.52.0:
-  version "5.52.0"
-  resolved "https://registry.npm.taobao.org/codemirror/download/codemirror-5.52.0.tgz#4dbd6aef7f0e63db826b9a23922f0c03ac75c0a7"
-  integrity sha1-Tb1q738OY9uCa5ojki8MA6x1wKc=
+codemirror@^5.52.2:
+  version "5.52.2"
+  resolved "https://registry.npm.taobao.org/codemirror/download/codemirror-5.52.2.tgz#c29e1f7179f85eb0dd17c0586fa810e4838ff584"
+  integrity sha1-wp4fcXn4XrDdF8BYb6gQ5IOP9YQ=
 
 collection-visit@^1.0.0:
   version "1.0.0"
@@ -5733,7 +5733,7 @@ diff-sequences@^25.1.0:
   resolved "https://registry.npm.taobao.org/diff-sequences/download/diff-sequences-25.1.0.tgz?cache=0&sync_timestamp=1579655107286&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fdiff-sequences%2Fdownload%2Fdiff-sequences-25.1.0.tgz#fd29a46f1c913fd66c22645dc75bffbe43051f32"
   integrity sha1-/SmkbxyRP9ZsImRdx1v/vkMFHzI=
 
-diff3@0.0.3:
+diff3@0.0.3, diff3@^0.0.3:
   version "0.0.3"
   resolved "https://registry.npm.taobao.org/diff3/download/diff3-0.0.3.tgz#d4e5c3a4cdf4e5fe1211ab42e693fcb4321580fc"
   integrity sha1-1OXDpM305f4SEatC5pP8tDIVgPw=
