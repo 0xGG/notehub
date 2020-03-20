@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "f6c90bd462c5a1ab7b5e68a478ea7530",
+    "revision": "0ad5f57988cbc394477ddd5ae08d4e5c",
     "url": "/notehub/index.html"
   },
   {
@@ -8,7 +8,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/notehub/static/css/2.fde29712.chunk.css"
   },
   {
-    "revision": "aa8f63f24df728459542",
+    "revision": "7a4f25a27fbc8814d279",
     "url": "/notehub/static/css/main.afddb3bb.chunk.css"
   },
   {
@@ -20,12 +20,12 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/notehub/static/js/2.0abc7c94.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "aa8f63f24df728459542",
-    "url": "/notehub/static/js/main.e5cf9b48.chunk.js"
+    "revision": "7a4f25a27fbc8814d279",
+    "url": "/notehub/static/js/main.7f283afd.chunk.js"
   },
   {
     "revision": "e2622f776e30d5b597311d31cedd08ad",
-    "url": "/notehub/static/js/main.e5cf9b48.chunk.js.LICENSE.txt"
+    "url": "/notehub/static/js/main.7f283afd.chunk.js.LICENSE.txt"
   },
   {
     "revision": "c6232353d30e8d84648f",
