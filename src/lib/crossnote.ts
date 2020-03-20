@@ -475,8 +475,8 @@ export default class Crossnote {
     onAuthFailure,
     onAuthSuccess
   }: PushNotebookArgs): Promise<null | git.PushResult> {
-    const staggedFiles = await this.listFiles(notebook);
-    if (!staggedFiles.length) {
+    const stagedFiles = await this.listFiles(notebook);
+    if (!stagedFiles.length) {
       return {
         ok: true,
         error: null,
@@ -566,11 +566,11 @@ export default class Crossnote {
       /*
       // NOTE: This is wrong. It will cause all files to be deleted in next push
       // Unstage all files
-      for (let i = 0; i < staggedFiles.length; i++) {
+      for (let i = 0; i < stagedFiles.length; i++) {
         await git.remove({
           fs: this.fs,
           dir: notebook.dir,
-          filepath: staggedFiles[i]
+          filepath: stagedFiles[i]
         });
       }*/
     }
@@ -595,6 +595,7 @@ export default class Crossnote {
         name: "anonymous",
         email: "anonymous@crossnote.app"
       },
+      fastForwardOnly: true,
       onAuth: (url, auth) => {
         return {
           username: notebook.gitUsername,
