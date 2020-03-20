@@ -3709,10 +3709,10 @@ bindings@^1.5.0:
   dependencies:
     file-uri-to-path "1.0.0"
 
-bitcore-lib@^8.16.0:
-  version "8.16.0"
-  resolved "https://registry.npm.taobao.org/bitcore-lib/download/bitcore-lib-8.16.0.tgz#5e0f357d52e84246875a3a624de094775a88e20e"
-  integrity sha1-Xg81fVLoQkaHWjpiTeCUd1qI4g4=
+bitcore-lib@^8.16.2:
+  version "8.16.2"
+  resolved "https://registry.npm.taobao.org/bitcore-lib/download/bitcore-lib-8.16.2.tgz#1f3e9d0c3ffbae83fddb3a5102adc8bbd5c12146"
+  integrity sha1-Hz6dDD/7roP92zpRAq3Iu9XBIUY=
   dependencies:
     bech32 "=1.1.3"
     bn.js "=4.11.8"
@@ -3722,12 +3722,12 @@ bitcore-lib@^8.16.0:
     inherits "=2.0.1"
     lodash "=4.17.15"
 
-bitcore-mnemonic@^8.16.0:
-  version "8.16.0"
-  resolved "https://registry.npm.taobao.org/bitcore-mnemonic/download/bitcore-mnemonic-8.16.0.tgz#7dd5579ea8a8b4d359d4b0b40fff3dc791a285e2"
-  integrity sha1-fdVXnqiotNNZ1LC0D/89x5GiheI=
+bitcore-mnemonic@^8.16.2:
+  version "8.16.2"
+  resolved "https://registry.npm.taobao.org/bitcore-mnemonic/download/bitcore-mnemonic-8.16.2.tgz#28966e06be5add902a85db5695ad49c60845756a"
+  integrity sha1-KJZuBr5a3ZAqhdtWla1JxghFdWo=
   dependencies:
-    bitcore-lib "^8.16.0"
+    bitcore-lib "^8.16.2"
     unorm "^1.4.1"
 
 bitfield-rle@^2.2.1:
@@ -12831,7 +12831,7 @@ react-dev-utils@^10.2.0:
     strip-ansi "6.0.0"
     text-table "0.2.0"
 
-react-dom@^16.12.0, react-dom@^16.13.0:
+react-dom@^16.12.0:
   version "16.13.0"
   resolved "https://registry.npm.taobao.org/react-dom/download/react-dom-16.13.0.tgz#cdde54b48eb9e8a0ca1b3dc9943d9bb409b81866"
   integrity sha1-zd5UtI656KDKGz3JlD2btAm4GGY=
@@ -12840,6 +12840,16 @@ react-dom@^16.12.0, react-dom@^16.13.0:
     object-assign "^4.1.1"
     prop-types "^15.6.2"
     scheduler "^0.19.0"
+
+react-dom@^16.13.1:
+  version "16.13.1"
+  resolved "https://registry.npm.taobao.org/react-dom/download/react-dom-16.13.1.tgz?cache=0&sync_timestamp=1584649245000&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Freact-dom%2Fdownload%2Freact-dom-16.13.1.tgz#c1bd37331a0486c078ee54c4740720993b2e0e7f"
+  integrity sha1-wb03MxoEhsB47lTEdAcgmTsuDn8=
+  dependencies:
+    loose-envify "^1.1.0"
+    object-assign "^4.1.1"
+    prop-types "^15.6.2"
+    scheduler "^0.19.1"
 
 react-draggable@^4.0.0, react-draggable@^4.0.3, react-draggable@^4.2.0:
   version "4.2.0"
@@ -13017,10 +13027,19 @@ react-transition-group@^4.0.0, react-transition-group@^4.3.0:
     loose-envify "^1.4.0"
     prop-types "^15.6.2"
 
-react@^16.12.0, react@^16.13.0:
+react@^16.12.0:
   version "16.13.0"
   resolved "https://registry.npm.taobao.org/react/download/react-16.13.0.tgz#d046eabcdf64e457bbeed1e792e235e1b9934cf7"
   integrity sha1-0EbqvN9k5Fe77tHnkuI14bmTTPc=
+  dependencies:
+    loose-envify "^1.1.0"
+    object-assign "^4.1.1"
+    prop-types "^15.6.2"
+
+react@^16.13.1:
+  version "16.13.1"
+  resolved "https://registry.npm.taobao.org/react/download/react-16.13.1.tgz?cache=0&sync_timestamp=1584649244665&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Freact%2Fdownload%2Freact-16.13.1.tgz#2e818822f1a9743122c063d6410d85c1e3afe48e"
+  integrity sha1-LoGIIvGpdDEiwGPWQQ2FweOv5I4=
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
@@ -13662,6 +13681,14 @@ scheduler@^0.19.0:
   version "0.19.0"
   resolved "https://registry.npm.taobao.org/scheduler/download/scheduler-0.19.0.tgz#a715d56302de403df742f4a9be11975b32f5698d"
   integrity sha1-pxXVYwLeQD33QvSpvhGXWzL1aY0=
+  dependencies:
+    loose-envify "^1.1.0"
+    object-assign "^4.1.1"
+
+scheduler@^0.19.1:
+  version "0.19.1"
+  resolved "https://registry.npm.taobao.org/scheduler/download/scheduler-0.19.1.tgz?cache=0&sync_timestamp=1584649245688&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fscheduler%2Fdownload%2Fscheduler-0.19.1.tgz#4f3e2ed2c1a7d65681f4c854fa8c5a1ccb40f196"
+  integrity sha1-Tz4u0sGn1laB9MhU+oxaHMtA8ZY=
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
@@ -14739,15 +14766,15 @@ terser@^4.0.0, terser@^4.1.2, terser@^4.4.3, terser@^4.6.3:
     source-map "~0.6.1"
     source-map-support "~0.5.12"
 
-tesseract.js-core@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.npm.taobao.org/tesseract.js-core/download/tesseract.js-core-2.0.0.tgz#1d4073ab4d0234d4c231de06ddd8c55043ac2b1a"
-  integrity sha1-HUBzq00CNNTCMd4G3djFUEOsKxo=
+tesseract.js-core@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.npm.taobao.org/tesseract.js-core/download/tesseract.js-core-2.2.0.tgz#6ef78051272a381969fac3e45a226e85022cffef"
+  integrity sha1-bveAUScqOBlp+sPkWiJuhQIs/+8=
 
-tesseract.js@^2.0.2:
-  version "2.0.2"
-  resolved "https://registry.npm.taobao.org/tesseract.js/download/tesseract.js-2.0.2.tgz#c415472198e0ba2910a6871a137e99bbd32ff34f"
-  integrity sha1-xBVHIZjguikQpocaE36Zu9Mv808=
+tesseract.js@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.npm.taobao.org/tesseract.js/download/tesseract.js-2.1.0.tgz#97a7c81e3e4e299ee5617745dd3569d7ebf9ef2f"
+  integrity sha1-l6fIHj5OKZ7lYXdF3TVp1+v57y8=
   dependencies:
     bmp-js "^0.1.0"
     file-type "^12.4.1"
@@ -14758,7 +14785,7 @@ tesseract.js@^2.0.2:
     opencollective-postinstall "^2.0.2"
     regenerator-runtime "^0.13.3"
     resolve-url "^0.2.1"
-    tesseract.js-core "^2.0.0"
+    tesseract.js-core "^2.2.0"
     zlibjs "^0.3.1"
 
 test-exclude@^5.2.3:

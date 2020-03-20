@@ -277,7 +277,7 @@ export default class Crossnote {
         dir,
         name: name.trim() || "Unnamed",
         gitURL: gitURL.trim(),
-        gitBranch: branch.trim(),
+        gitBranch: branch.trim() || "master",
         gitCorsProxy: corsProxy.trim(),
         gitUsername: rememberCredentials ? username.trim() : "",
         gitPassword: rememberCredentials ? password : ""
@@ -348,7 +348,7 @@ export default class Crossnote {
       dir,
       corsProxy,
       url: gitURL,
-      ref: branch,
+      ref: branch.trim() || "master",
       depth: depth,
       singleBranch: true,
       onAuth: (url, auth) => {
@@ -364,7 +364,7 @@ export default class Crossnote {
       dir,
       name: name || this.getDefaultNotebookNameFromGitURL(gitURL),
       gitURL: gitURL,
-      gitBranch: branch,
+      gitBranch: branch.trim() || "master",
       gitCorsProxy: corsProxy,
       gitUsername: rememberCredentials ? username : "",
       gitPassword: rememberCredentials ? password : ""
@@ -475,14 +475,32 @@ export default class Crossnote {
     onAuthFailure,
     onAuthSuccess
   }: PushNotebookArgs): Promise<null | git.PushResult> {
-    const stagedFiles = await this.listFiles(notebook);
-    if (!stagedFiles.length) {
+    const staggedFiles = await this.listFiles(notebook);
+    if (!staggedFiles.length) {
       return {
         ok: true,
         error: null,
         refs: {}
       };
     }
+
+    // Pull notebook first
+    await this.pullNotebook({
+      notebook,
+      onProgress,
+      onAuthFailure,
+      onAuthSuccess,
+      onMessage
+    });
+
+    const logs = await git.log({
+      fs: this.fs,
+      dir: notebook.dir,
+      ref: `origin/${notebook.gitBranch || "master"}`,
+      depth: 5
+    });
+    const latestSha = (logs && logs[0] && logs[0].oid) || "";
+
     const sha = await git.commit({
       fs: this.fs,
       dir: notebook.dir,
@@ -492,6 +510,15 @@ export default class Crossnote {
       },
       message
     });
+
+    const restoreSHA = async () => {
+      const gitBranch = notebook.gitBranch || "master";
+      await this.writeFile(
+        path.resolve(notebook.dir, `.git/refs/heads/${gitBranch}`),
+        latestSha
+      );
+    };
+
     // console.log(sha);
     const pushResult = await git.push({
       fs: this.fs,
@@ -516,6 +543,7 @@ export default class Crossnote {
         if (onAuthFailure) {
           onAuthFailure(url);
         }
+        restoreSHA();
       },
       onAuthSuccess: (url, auth) => {
         if (onAuthSuccess) {
@@ -527,15 +555,22 @@ export default class Crossnote {
       ref: notebook.gitBranch,
       corsProxy: notebook.gitCorsProxy
     });
+
+    // console.log("pushResult: ", pushResult);
+
+    if (pushResult.error) {
+      restoreSHA();
+    }
+
     if (pushResult.ok) {
       /*
       // NOTE: This is wrong. It will cause all files to be deleted in next push
       // Unstage all files
-      for (let i = 0; i < stagedFiles.length; i++) {
+      for (let i = 0; i < staggedFiles.length; i++) {
         await git.remove({
           fs: this.fs,
           dir: notebook.dir,
-          filepath: stagedFiles[i]
+          filepath: staggedFiles[i]
         });
       }*/
     }
@@ -555,7 +590,7 @@ export default class Crossnote {
       dir: notebook.dir,
       singleBranch: true,
       corsProxy: notebook.gitCorsProxy,
-      ref: notebook.gitBranch,
+      ref: notebook.gitBranch || "master",
       author: {
         name: "anonymous",
         email: "anonymous@crossnote.app"
@@ -811,8 +846,6 @@ export default class Crossnote {
         });
       });
     }
-
-    console.log("rootTagNode: ", rootTagNode);
 
     return rootTagNode;
   }

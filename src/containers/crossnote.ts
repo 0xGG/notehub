@@ -309,8 +309,11 @@ function useCrossnoteContainer(initialState: InitialState) {
         );
         setNotebookTagNode(crossnote.getNotebookTagNodeFromNotes(notes));
 
-        if (!notes.find(n => n.filePath === selectedNote.filePath)) {
+        const newNote = notes.find(n => n.filePath === selectedNote.filePath);
+        if (!newNote) {
           setSelectedNote(notes[0]); // TODO: pull might remove currently selectedNote
+        } else {
+          setSelectedNote(newNote);
         }
       } catch (error) {
         setIsPullingNotebook(false);
