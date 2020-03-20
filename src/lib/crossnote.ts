@@ -804,6 +804,28 @@ export default class Crossnote {
       })
     ).docs;
     // console.log(notebooks);
+
+    // Restore to remote ref
+    for (let i = 0; i < notebooks.length; i++) {
+      const notebook = notebooks[i];
+      if (notebook.gitURL.trim().length <= 0) {
+        // no remote set
+        continue;
+      }
+      const gitBranch = notebook.gitBranch || "master";
+      const logs = await git.log({
+        fs: this.fs,
+        dir: notebook.dir,
+        ref: `origin/${gitBranch}`,
+        depth: 5
+      });
+      const latestSha = (logs && logs[0] && logs[0].oid) || "";
+      await this.writeFile(
+        path.resolve(notebook.dir, `.git/refs/heads/${gitBranch}`),
+        latestSha
+      );
+    }
+
     return notebooks;
   }
 
