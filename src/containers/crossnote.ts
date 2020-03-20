@@ -68,7 +68,8 @@ function useCrossnoteContainer(initialState: InitialState) {
     (note: Note, markdown: string, callback?: (status: string) => void) => {
       crossnote
         .writeNote(note.notebook, note.filePath, markdown, note.config)
-        .then(() => {
+        .then(noteConfig => {
+          note.config = noteConfig;
           if (callback) {
             crossnote.getStatus(note).then(status => {
               callback(status);
@@ -156,7 +157,6 @@ function useCrossnoteContainer(initialState: InitialState) {
         if (!fileName.endsWith(".md")) {
           fileName = fileName + ".md";
         }
-        let dir = selectedSection;
         let filePath;
         let tags: string[] = [];
         if (
@@ -470,6 +470,10 @@ function useCrossnoteContainer(initialState: InitialState) {
                 selectedSection.path + "/"
               ) === 0
           );
+        });
+      } else if (selectedSection.type === SelectedSectionType.Conflicted) {
+        notes = notebookNotes.filter(note => {
+          return crossnote.markdownHasConflicts(note.markdown);
         });
       } else {
         // SelectedSectionType.Directory

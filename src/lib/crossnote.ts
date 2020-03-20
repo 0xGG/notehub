@@ -3,6 +3,8 @@ import http from "isomorphic-git/http/web";
 import * as path from "path";
 import PouchDB from "pouchdb";
 import PouchdbFind from "pouchdb-find";
+// @ts-ignore
+import diff3Merge from "diff3";
 import { randomID } from "../utilities/utils";
 import { getHeaderFromMarkdown } from "../utilities/note";
 import { Stats } from "fs";
@@ -95,6 +97,10 @@ export interface PullNotebookArgs {
   onMessage?: (message: string) => void;
   onAuthFailure?: (url: string) => void;
   onAuthSuccess?: (url: string) => void;
+}
+
+interface PullNotebookResult {
+  numConflicts: number;
 }
 
 export default class Crossnote {
@@ -484,16 +490,18 @@ export default class Crossnote {
       };
     }
 
-    /*
     // Pull notebook first
-    await this.pullNotebook({
+    const pullNotebookResult = await this.pullNotebook({
       notebook,
       onProgress,
       onAuthFailure,
       onAuthSuccess,
       onMessage
     });
-    */
+
+    if (pullNotebookResult.numConflicts > 0) {
+      throw new Error("error/please-resolve-conflicts");
+    }
 
     const logs = await git.log({
       fs: this.fs,
@@ -585,10 +593,17 @@ export default class Crossnote {
     onAuthFailure,
     onAuthSuccess,
     onMessage
-  }: PullNotebookArgs) {
-    /*
+  }: PullNotebookArgs): Promise<PullNotebookResult> {
+    // TODO: If has conflicted notes, prevent pulling.
+
     // NOTE: Seems like diff3 not working as I expected. Therefore I might create my own type of diff
     const stagedFiles = await git.listFiles({ fs: this.fs, dir: notebook.dir });
+    const cache: {
+      [key: string]: {
+        status: string;
+        markdown: string;
+      };
+    } = {};
     for (let i = 0; i < stagedFiles.length; i++) {
       const status = await git.status({
         fs: this.fs,
@@ -596,9 +611,22 @@ export default class Crossnote {
         filepath: stagedFiles[i]
       });
       if (status.match(/^\*?(modified|added)/)) {
-        console.log(stagedFiles[i], status);
+        cache[stagedFiles[i]] = {
+          status,
+          markdown: await this.readFile(
+            path.resolve(notebook.dir, stagedFiles[i])
+          )
+        };
       }
-    }*/
+    }
+
+    let logs = await git.log({
+      fs: this.fs,
+      dir: notebook.dir,
+      ref: `origin/${notebook.gitBranch || "master"}`,
+      depth: 5
+    });
+    const currentSha = (logs && logs[0] && logs[0]).oid;
 
     await git.pull({
       fs: this.fs,
@@ -623,6 +651,123 @@ export default class Crossnote {
       onAuthSuccess,
       onMessage
     });
+
+    logs = await git.log({
+      fs: this.fs,
+      dir: notebook.dir,
+      ref: `origin/${notebook.gitBranch || "master"}`,
+      depth: 5
+    });
+    const latestSha = (logs && logs[0] && logs[0]).oid;
+
+    let numConflicts = 0;
+    if (currentSha === latestSha) {
+      // Restore from cache
+      // console.log("same");
+      for (const filePath in cache) {
+        const markdown = cache[filePath].markdown;
+        await this.writeFile(path.resolve(notebook.dir, filePath), markdown);
+        await git.add({
+          fs: this.fs,
+          dir: notebook.dir,
+          filepath: filePath
+        });
+        if (this.markdownHasConflicts(markdown)) {
+          numConflicts += 1;
+        }
+      }
+    } else {
+      // Check conflicted notes
+      // console.log("check conflicted");
+      const LINEBREAKS = /^.*(\r?\n|$)/gm;
+      const markerSize = 7;
+      const ourName = "ours";
+      const theirName = "theirs";
+      // const baseName = "base";
+      for (const filePath in cache) {
+        const ourContent = cache[filePath].markdown;
+        if (await this.exists(path.resolve(notebook.dir, filePath))) {
+          const theirContent = await this.readFile(
+            path.resolve(notebook.dir, filePath)
+          );
+          const baseContentBlobResult = await git.readBlob({
+            fs: this.fs,
+            dir: notebook.dir,
+            oid: currentSha,
+            filepath: filePath
+          });
+          const baseContent = Buffer.from(baseContentBlobResult.blob).toString(
+            "utf8"
+          );
+          // console.log("ourContent: ", ourContent);
+          // console.log("theirContent: ", theirContent);
+          // console.log("baseContent: ", baseContent);
+
+          // TODO: clean front-matter
+
+          // Refered from https://github.com/isomorphic-git/isomorphic-git/blob/4e66704d05042624bbc78b85ee5110d5ee7ec3e2/src/utils/mergeFile.js
+          const ours = ourContent.match(LINEBREAKS);
+          const base = baseContent.match(LINEBREAKS);
+          const theirs = theirContent.match(LINEBREAKS);
+
+          // Here we let the diff3 library do the heavy lifting.
+          const result = diff3Merge(ours, base, theirs);
+
+          // Here we note whether there are conflicts and format the results
+          let mergedText = "";
+          let hasConflict = false;
+          for (const item of result) {
+            if (item.ok) {
+              mergedText += item.ok.join("");
+            }
+            if (item.conflict) {
+              hasConflict = true;
+              mergedText += `\\<${"<".repeat(markerSize - 1)} ${ourName}\n`;
+              mergedText += item.conflict.a.join("");
+              // if (format === "diff3") {
+              //mergedText += `\\|${"|".repeat(markerSize - 1)} ${baseName}\n`;
+              //mergedText += item.conflict.o.join("");
+              // }
+              mergedText += `\\=${"=".repeat(markerSize - 1)}\n`;
+              mergedText += item.conflict.b.join("");
+              mergedText += `\\>${">".repeat(markerSize - 1)} ${theirName}\n`;
+            }
+          }
+          if (hasConflict) {
+            numConflicts += 1;
+          }
+
+          // console.log("mergedText: ", mergedText);
+          await this.writeFile(
+            path.resolve(notebook.dir, filePath),
+            mergedText
+          );
+          await git.add({
+            fs: this.fs,
+            dir: notebook.dir,
+            filepath: filePath
+          });
+        } else {
+          const markdown = cache[filePath].markdown;
+          await this.writeFile(path.resolve(notebook.dir, filePath), markdown);
+          await git.add({
+            fs: this.fs,
+            dir: notebook.dir,
+            filepath: filePath
+          });
+        }
+      }
+    }
+    return {
+      numConflicts
+    };
+  }
+
+  public markdownHasConflicts(markdown: string): boolean {
+    const m1 = markdown.match(/^\\<+\s/gm);
+    const m2 = markdown.match(/^\\=+\s/gm);
+    const m3 = markdown.match(/^\\>+\s/gm);
+    return m1 && m1.length > 0 && m2 && m2.length > 0 && m3 && m3.length > 0;
   }
 
   public async checkoutNote(note: Note): Promise<Note> {
@@ -694,9 +839,14 @@ export default class Crossnote {
         tags: []
       };
 
-      const data = matter.default(markdown);
-      noteConfig = Object.assign(noteConfig, data.data["note"] || {});
-      markdown = data.content;
+      try {
+        const data = matter.default(markdown);
+        noteConfig = Object.assign(noteConfig, data.data["note"] || {});
+        markdown = data.content;
+      } catch (error) {
+        // Do nothing
+        markdown = "Please fix front-matter\n\n" + markdown;
+      }
 
       // Create note
       const note: Note = {
@@ -756,19 +906,19 @@ export default class Crossnote {
     filePath: string,
     markdown: string,
     noteConfig: NoteConfig
-  ) {
+  ): Promise<NoteConfig> {
     noteConfig.modifiedAt = new Date();
     try {
       const data = matter.default(markdown);
       if (data.data["note"] && data.data["note"] instanceof Object) {
-        noteConfig = Object.assign(noteConfig, data.data["note"]);
+        noteConfig = Object.assign({}, noteConfig, data.data["note"]);
       }
       markdown = matter.default.stringify(
         markdown,
         Object.assign(data.data || {}, { note: noteConfig })
       );
     } catch (error) {
-      return;
+      markdown = matter.default.stringify(markdown, { note: noteConfig });
     }
 
     await this.writeFile(path.resolve(notebook.dir, filePath), markdown);
@@ -777,6 +927,7 @@ export default class Crossnote {
       dir: notebook.dir,
       filepath: filePath
     });
+    return noteConfig;
   }
   public async deleteNote(notebook: Notebook, filePath: string) {
     if (await this.exists(path.resolve(notebook.dir, filePath))) {

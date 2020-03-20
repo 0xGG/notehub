@@ -12,6 +12,7 @@ import {
 import { CrossnoteContainer } from "../containers/crossnote";
 import { Notebook } from "../lib/crossnote";
 import Noty from "noty";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   open: boolean;
@@ -33,6 +34,7 @@ export default function PushNotebookDialog(props: Props) {
   const [commitMessage, setCommitMessage] = useState<string>(
     "doc: Updated docs"
   );
+  const { t } = useTranslation();
 
   const pushNotebook = useCallback(() => {
     crossnoteContainer
@@ -63,12 +65,13 @@ export default function PushNotebookDialog(props: Props) {
           timeout: 2000
         }).show();
       })
-      .catch(error => {
-        console.log(error);
+      .catch((error: Error) => {
         props.onClose();
         new Noty({
           type: "error",
-          text: "Failed to push notebook",
+          text: error.message.match(/^error\//)
+            ? t(error.message)
+            : "Failed to push notebook",
           layout: "topRight",
           theme: "relax",
           timeout: 2000
