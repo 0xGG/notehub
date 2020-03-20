@@ -729,7 +729,7 @@ export default function Editor(props: Props) {
           </ButtonGroup>
           {note.notebook.gitURL && ( // If no git url set, then don't allow push/pull
             <ButtonGroup style={{ marginLeft: "8px" }}>
-              <Tooltip title={"Push"}>
+              <Tooltip title={"Upload (Push)"}>
                 <Button
                   className={clsx(classes.controlBtn)}
                   onClick={() => setPushDialogOpen(true)}
@@ -737,7 +737,7 @@ export default function Editor(props: Props) {
                   <CloudUploadOutline></CloudUploadOutline>
                 </Button>
               </Tooltip>
-              <Tooltip title={"Pull"}>
+              <Tooltip title={"Download (Pull)"}>
                 <Button
                   className={clsx(classes.controlBtn)}
                   onClick={pullNotebook}
