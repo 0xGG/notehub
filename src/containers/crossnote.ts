@@ -65,26 +65,23 @@ function useCrossnoteContainer(initialState: InitialState) {
   ); // For mobile device without any initial data, set to `true` will create empty white page.
   const updateNoteMarkdown = useCallback(
     (note: Note, markdown: string, callback?: (status: string) => void) => {
-      setNotes(notes =>
-        notes.map(n => {
-          if (n.filePath === note.filePath) {
-            n.markdown = markdown;
-            //  n.config.modifiedAt = new Date();
-            crossnote
-              .writeNote(note.notebook, note.filePath, markdown, note.config)
-              .then(() => {
-                if (callback) {
-                  crossnote.getStatus(note).then(status => {
-                    callback(status);
-                  });
-                }
-              });
-            return n;
-          } else {
-            return n;
+      crossnote
+        .writeNote(note.notebook, note.filePath, markdown, note.config)
+        .then(() => {
+          if (callback) {
+            crossnote.getStatus(note).then(status => {
+              callback(status);
+            });
           }
-        })
-      );
+          setNotes(notes => {
+            const index = notes.findIndex(n => n.filePath === note.filePath);
+            if (index >= 0) {
+              notes[index].markdown = markdown;
+            }
+            return [...notes];
+          });
+          // 🖕 Too laggy. Needs optimization
+        });
     },
     [crossnote]
   );
@@ -477,7 +474,7 @@ function useCrossnoteContainer(initialState: InitialState) {
         // SelectedSectionType.Directory
         if (includeSubdirectories) {
           notes = notebookNotes.filter(
-            note => note.filePath.indexOf(selectedSection + "/") === 0
+            note => note.filePath.indexOf(selectedSection.path + "/") === 0
           );
         } else {
           notes = notebookNotes.filter(

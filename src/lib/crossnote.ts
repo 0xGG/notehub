@@ -760,6 +760,9 @@ export default class Crossnote {
     noteConfig.modifiedAt = new Date();
     try {
       const data = matter.default(markdown);
+      if (data.data["note"] && data.data["note"] instanceof Object) {
+        noteConfig = Object.assign(noteConfig, data.data["note"]);
+      }
       markdown = matter.default.stringify(
         markdown,
         Object.assign(data.data || {}, { note: noteConfig })
