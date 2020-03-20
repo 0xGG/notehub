@@ -37,7 +37,7 @@ const useStyles = makeStyles((theme: Theme) =>
       color: theme.palette.text.secondary
     },
     rightPanel: {
-      flex: "1",
+      width: "calc(100% - 48px)",
       borderBottom: "1px solid #ededed"
     },
     header: {
@@ -58,7 +58,29 @@ const useStyles = makeStyles((theme: Theme) =>
       "-webkit-box-orient": "vertical",
       wordBreak: "break-all"
     },
-    filePath: {}
+    filePath: {},
+    images: {
+      display: "flex",
+      width: "100%",
+      overflow: "hidden",
+      position: "relative",
+      marginBottom: theme.spacing(1)
+    },
+    imagesWrapper: {
+      display: "flex",
+      alignItems: "center",
+      flexDirection: "row"
+    },
+    image: {
+      width: "128px",
+      height: "80px",
+      marginRight: theme.spacing(1),
+      position: "relative",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      display: "block",
+      borderRadius: "6px"
+    }
   })
 );
 
@@ -72,6 +94,7 @@ export default function NoteCard(props: Props) {
   const crossnoteContainer = CrossnoteContainer.useContainer();
   const [header, setHeader] = useState<string>("");
   const [summary, setSummary] = useState<Summary>(null);
+  const [images, setImages] = useState<string[]>([]);
   const [gitStatus, setGitStatus] = useState<string>("");
   const { t } = useTranslation();
   const duration = formatDistanceStrict(note.config.modifiedAt, Date.now())
@@ -90,6 +113,12 @@ export default function NoteCard(props: Props) {
     )
       .then(summary => {
         setSummary(summary);
+
+        // render images
+        const images = summary.images
+          .filter(image => image.startsWith("https://"))
+          .slice(0, 3); // TODO: Support local image
+        setImages(images);
       })
       .catch(error => {});
   }, [note.markdown, t]);
@@ -136,6 +165,20 @@ export default function NoteCard(props: Props) {
           <Typography className={clsx(classes.summary)}>
             {summary && summary.summary}
           </Typography>
+        )}
+        {images.length && (
+          <Box className={clsx(classes.images)}>
+            <Box className={clsx(classes.imagesWrapper)}>
+              {images.map(image => (
+                <div
+                  className={clsx(classes.image)}
+                  style={{
+                    backgroundImage: `url(${image})`
+                  }}
+                ></div>
+              ))}
+            </Box>
+          </Box>
         )}
         <Typography variant={"caption"} className={clsx(classes.filePath)}>
           {note.filePath + " - " + gitStatus}
