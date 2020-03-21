@@ -16,7 +16,8 @@ import {
   Card,
   IconButton,
   Typography,
-  Hidden
+  Hidden,
+  CircularProgress
 } from "@material-ui/core";
 import NoteCard from "./NoteCard";
 import {
@@ -85,9 +86,16 @@ const useStyles = makeStyles((theme: Theme) =>
       }
     },
     notesList: {
+      position: "relative",
       flex: "1",
       overflowY: "auto",
       paddingBottom: theme.spacing(12)
+    },
+    loading: {
+      position: "absolute",
+      top: "30%",
+      left: "50%",
+      transform: "translateX(-50%)"
     }
   })
 );
@@ -271,6 +279,11 @@ export default function Notes(props: Props) {
       ></ConfigureNotebookDialog>
 
       <Box className={clsx(classes.notesList)}>
+        {crossnoteContainer.isLoadingNotebook && (
+          <CircularProgress
+            className={clsx(classes.loading)}
+          ></CircularProgress>
+        )}
         {separatePinnedAndUnpinned(crossnoteContainer.notes).map(note => {
           if (searchValue.trim().length) {
             const regexp = new RegExp(

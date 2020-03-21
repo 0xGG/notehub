@@ -69,6 +69,7 @@ function useCrossnoteContainer(initialState: InitialState) {
   const [needsToRefreshNotes, setNeedsToRefreshNotes] = useState<boolean>(
     false
   );
+  const [isLoadingNotebook, setIsLoadingNotebook] = useState<boolean>(false);
 
   const updateNoteMarkdown = useCallback(
     (
@@ -433,6 +434,19 @@ function useCrossnoteContainer(initialState: InitialState) {
       return;
     }
     (async () => {
+      setIsLoadingNotebook(true);
+      setNotebookNotes([]);
+      setNotebookDirectories({
+        name: ".",
+        path: ".",
+        children: []
+      });
+      setNotebookTagNode({
+        name: ".",
+        path: ".",
+        children: []
+      });
+
       const notes = (
         await crossnote.listNotes({
           notebook: selectedNotebook,
@@ -448,6 +462,7 @@ function useCrossnoteContainer(initialState: InitialState) {
       );
       setNotebookTagNode(crossnote.getNotebookTagNodeFromNotes(notes));
       setSelectedNote(notes[0]);
+      setIsLoadingNotebook(false);
     })();
   }, [crossnote, selectedNotebook]);
 
@@ -536,17 +551,6 @@ function useCrossnoteContainer(initialState: InitialState) {
   const _setSelectedNotebook = useCallback(
     (notebook: Notebook) => {
       localStorage.setItem("selectedNotebookID", notebook._id);
-      setNotebookNotes([]);
-      setNotebookDirectories({
-        name: ".",
-        path: ".",
-        children: []
-      });
-      setNotebookTagNode({
-        name: ".",
-        path: ".",
-        children: []
-      });
       setSelectedNotebook(notebook);
     },
     [setSelectedNotebook]
@@ -582,7 +586,8 @@ function useCrossnoteContainer(initialState: InitialState) {
     displayMobileEditor,
     setDisplayMobileEditor,
     updateNotebookTagNode,
-    getNote
+    getNote,
+    isLoadingNotebook
   };
 }
 
