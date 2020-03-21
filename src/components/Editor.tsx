@@ -365,7 +365,7 @@ export default function Editor(props: Props) {
           .then(n => {
             try {
               const bytes = CryptoJS.AES.decrypt(
-                n.markdown,
+                n.markdown.trim(),
                 toggleEncryptionPassword
               );
               const json = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
@@ -431,7 +431,10 @@ export default function Editor(props: Props) {
         .then(n => {
           // Decrypt
           try {
-            const bytes = CryptoJS.AES.decrypt(n.markdown, decryptionPassword);
+            const bytes = CryptoJS.AES.decrypt(
+              n.markdown.trim(),
+              decryptionPassword
+            );
             const json = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
             editor.setOption("readOnly", false);
             editor.setValue(json.markdown);
@@ -555,15 +558,15 @@ export default function Editor(props: Props) {
       };
       editor.on("changes", changesHandler);
 
-      const cursorActivityHandler = () => {
+      const keyupHandler = () => {
         if (!isDecrypted && note.config.encryption) {
           setDecryptionDialogOpen(true);
         }
       };
-      editor.on("cursorActivity", cursorActivityHandler);
+      editor.on("keyup", keyupHandler);
       return () => {
         editor.off("changes", changesHandler);
-        editor.off("cursorActivity", cursorActivityHandler);
+        editor.off("keyup", keyupHandler);
       };
     }
   }, [editor, note, decryptionPassword, isDecrypted]);

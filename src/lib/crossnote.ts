@@ -852,7 +852,6 @@ export default class Crossnote {
       return `---
 ${yamlStr}
 ---
-
 ${markdown}`;
     }
   }
