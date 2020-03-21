@@ -734,6 +734,10 @@ export default function Editor(props: Props) {
                 <Button
                   className={clsx(classes.controlBtn)}
                   onClick={() => setPushDialogOpen(true)}
+                  disabled={
+                    crossnoteContainer.isPullingNotebook ||
+                    crossnoteContainer.isPushingNotebook
+                  }
                 >
                   <CloudUploadOutline></CloudUploadOutline>
                 </Button>
@@ -742,7 +746,10 @@ export default function Editor(props: Props) {
                 <Button
                   className={clsx(classes.controlBtn)}
                   onClick={pullNotebook}
-                  disabled={crossnoteContainer.isPullingNotebook}
+                  disabled={
+                    crossnoteContainer.isPullingNotebook ||
+                    crossnoteContainer.isPushingNotebook
+                  }
                 >
                   <CloudDownloadOutline></CloudDownloadOutline>
                 </Button>
