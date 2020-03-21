@@ -50,6 +50,7 @@ export interface NoteConfig {
   createdAt: Date;
   modifiedAt: Date;
   tags?: string[];
+  pinned?: boolean;
 }
 
 export interface NotebookConfig {

@@ -27,6 +27,7 @@ import {
 } from "mdi-material-ui";
 import { useTranslation } from "react-i18next";
 import ConfigureNotebookDialog from "./ConfigureNotebookDialog";
+import { Note } from "../lib/crossnote";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -107,6 +108,19 @@ export default function Notes(props: Props) {
     notebookConfigurationDialogOpen,
     setNotebookConfigurationDialogOpen
   ] = useState<boolean>(false);
+
+  const separatePinnedAndUnpinned = (notes: Note[]): Note[] => {
+    const pinned: Note[] = [];
+    const unpinned: Note[] = [];
+    notes.forEach(note => {
+      if (note.config.pinned) {
+        pinned.push(note);
+      } else {
+        unpinned.push(note);
+      }
+    });
+    return [...pinned, ...unpinned];
+  };
 
   return (
     <Box className={clsx(classes.notes)}>
@@ -247,7 +261,7 @@ export default function Notes(props: Props) {
       ></ConfigureNotebookDialog>
 
       <Box className={clsx(classes.notesList)}>
-        {crossnoteContainer.notes.map(note => {
+        {separatePinnedAndUnpinned(crossnoteContainer.notes).map(note => {
           if (searchValue.trim().length) {
             const regexp = new RegExp(
               "(" +
