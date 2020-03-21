@@ -84,7 +84,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     pin: {
       color: theme.palette.secondary.main,
-      marginTop: theme.spacing(2)
+      marginTop: theme.spacing(1)
     }
   })
 );

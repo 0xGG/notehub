@@ -395,6 +395,33 @@ export default function NotebookTreeView(props: Props) {
           }
         ></TreeItem>
         <TreeItem
+          nodeId={"encrypted-notes"}
+          classes={{
+            root: classes.treeItemRoot,
+            content: classes.treeItemContent,
+            expanded: classes.treeItemExpanded,
+            group: classes.treeItemGroup,
+            label: classes.treeItemLabel
+          }}
+          label={
+            <Box
+              onClick={() => {
+                crossnoteContainer.setSelectedSection({
+                  type: SelectedSectionType.Encrypted
+                });
+              }}
+              className={clsx(classes.treeItemLabelRoot)}
+            >
+              <span role="img" aria-label="encrypted-notes">
+                🔐
+              </span>
+              <Typography className={clsx(classes.treeItemLabelText)}>
+                {"encrypted"}
+              </Typography>
+            </Box>
+          }
+        ></TreeItem>
+        <TreeItem
           nodeId={"conflicted-notes"}
           classes={{
             root: classes.treeItemRoot,

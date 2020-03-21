@@ -537,7 +537,7 @@ export default function Editor(props: Props) {
   useEffect(() => {
     if (editor && note) {
       setTagNames(note.config.tags || []);
-      const handler = () => {
+      const changesHandler = () => {
         if (editor.getOption("readOnly") || !isDecrypted) {
           // This line is necessary for decryption...
           return;
@@ -553,9 +553,17 @@ export default function Editor(props: Props) {
           }
         );
       };
-      editor.on("changes", handler);
+      editor.on("changes", changesHandler);
+
+      const cursorActivityHandler = () => {
+        if (!isDecrypted && note.config.encryption) {
+          setDecryptionDialogOpen(true);
+        }
+      };
+      editor.on("cursorActivity", cursorActivityHandler);
       return () => {
-        editor.off("changes", handler);
+        editor.off("changes", changesHandler);
+        editor.off("cursorActivity", cursorActivityHandler);
       };
     }
   }, [editor, note, decryptionPassword, isDecrypted]);

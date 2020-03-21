@@ -23,7 +23,8 @@ export enum SelectedSectionType {
   Untagged = "Untagged",
   Directory = "Directory",
   Tag = "Tag",
-  Conflicted = "Conflicted"
+  Conflicted = "Conflicted",
+  Encrypted = "Encrypted"
 }
 
 export interface SelectedSection {
@@ -493,6 +494,10 @@ function useCrossnoteContainer(initialState: InitialState) {
       } else if (selectedSection.type === SelectedSectionType.Conflicted) {
         notes = notebookNotes.filter(note => {
           return crossnote.markdownHasConflicts(note.markdown);
+        });
+      } else if (selectedSection.type === SelectedSectionType.Encrypted) {
+        notes = notebookNotes.filter(note => {
+          return note.config.encryption;
         });
       } else {
         // SelectedSectionType.Directory
