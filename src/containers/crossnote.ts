@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createContainer } from "unstated-next";
 import * as path from "path";
 import Noty from "noty";
+import useInterval from "@use-it/interval";
 import { randomID, OneDay } from "../utilities/utils";
 import { useTranslation } from "react-i18next";
 import Crossnote, {
@@ -64,25 +65,23 @@ function useCrossnoteContainer(initialState: InitialState) {
   const [displayMobileEditor, setDisplayMobileEditor] = useState<boolean>(
     false
   ); // For mobile device without any initial data, set to `true` will create empty white page.
+  const [needsToRefreshNotes, setNeedsToRefreshNotes] = useState<boolean>(
+    false
+  );
+
   const updateNoteMarkdown = useCallback(
     (note: Note, markdown: string, callback?: (status: string) => void) => {
       crossnote
         .writeNote(note.notebook, note.filePath, markdown, note.config)
         .then(noteConfig => {
           note.config = noteConfig;
+          note.markdown = markdown;
           if (callback) {
             crossnote.getStatus(note).then(status => {
               callback(status);
             });
           }
-          setNotes(notes => {
-            const index = notes.findIndex(n => n.filePath === note.filePath);
-            if (index >= 0) {
-              notes[index].markdown = markdown;
-            }
-            return [...notes];
-          });
-          // 🖕 Too laggy. Needs optimization
+          setNeedsToRefreshNotes(true);
         });
     },
     [crossnote]
@@ -501,6 +500,13 @@ function useCrossnoteContainer(initialState: InitialState) {
     selectedNote,
     notebookNotes
   ]);
+
+  useInterval(() => {
+    if (needsToRefreshNotes) {
+      setNeedsToRefreshNotes(false);
+      setNotes(notes => [...notes]);
+    }
+  }, 4000);
 
   const _setSelectedNotebook = useCallback(
     (notebook: Notebook) => {

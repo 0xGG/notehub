@@ -35,7 +35,10 @@ import {
   FullscreenExit,
   ChevronLeft,
   Tag,
-  Close
+  Close,
+  Pin,
+  PinOff,
+  PinOutline
 } from "mdi-material-ui";
 import { renderPreview } from "vickymd/preview";
 import PushNotebookDialog from "./PushNotebookDialog";
@@ -77,6 +80,9 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     controlBtnSelected: {
       color: theme.palette.primary.main
+    },
+    controlBtnSelectedSecondary: {
+      color: theme.palette.secondary.main
     },
     row: {
       display: "flex",
@@ -312,6 +318,15 @@ export default function Editor(props: Props) {
     },
     [note, editor]
   );
+
+  const togglePin = useCallback(() => {
+    if (note && editor) {
+      note.config.pinned = !note.config.pinned;
+      crossnoteContainer.updateNoteMarkdown(note, editor.getValue(), status => {
+        setGitStatus(status);
+      });
+    }
+  }, [note, editor]);
 
   useEffect(() => {
     setNewFilePath(note.filePath);
@@ -691,6 +706,17 @@ export default function Editor(props: Props) {
                 <Tag></Tag>
               </Button>
             </Tooltip>
+            <Tooltip title={"Pin"}>
+              <Button
+                className={clsx(
+                  classes.controlBtn,
+                  note.config.pinned && classes.controlBtnSelectedSecondary
+                )}
+                onClick={togglePin}
+              >
+                {note.config.pinned ? <Pin></Pin> : <PinOutline></PinOutline>}
+              </Button>
+            </Tooltip>
           </ButtonGroup>
           <ButtonGroup style={{ marginLeft: "8px" }}>
             <Tooltip title={"Fullscreen"}>
@@ -734,6 +760,10 @@ export default function Editor(props: Props) {
                 <Button
                   className={clsx(classes.controlBtn)}
                   onClick={() => setPushDialogOpen(true)}
+                  disabled={
+                    crossnoteContainer.isPullingNotebook ||
+                    crossnoteContainer.isPushingNotebook
+                  }
                 >
                   <CloudUploadOutline></CloudUploadOutline>
                 </Button>
@@ -742,7 +772,10 @@ export default function Editor(props: Props) {
                 <Button
                   className={clsx(classes.controlBtn)}
                   onClick={pullNotebook}
-                  disabled={crossnoteContainer.isPullingNotebook}
+                  disabled={
+                    crossnoteContainer.isPullingNotebook ||
+                    crossnoteContainer.isPushingNotebook
+                  }
                 >
                   <CloudDownloadOutline></CloudDownloadOutline>
                 </Button>

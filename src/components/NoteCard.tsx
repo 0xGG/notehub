@@ -11,6 +11,7 @@ import {
 } from "../utilities/note";
 import { formatDistanceStrict } from "date-fns/esm";
 import { useTranslation } from "react-i18next";
+import { Pin } from "mdi-material-ui";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -80,6 +81,10 @@ const useStyles = makeStyles((theme: Theme) =>
       backgroundPosition: "center",
       display: "block",
       borderRadius: "6px"
+    },
+    pin: {
+      color: theme.palette.secondary.main,
+      marginTop: theme.spacing(2)
     }
   })
 );
@@ -150,6 +155,7 @@ export default function NoteCard(props: Props) {
     >
       <Box className={clsx(classes.leftPanel)}>
         <Typography className={clsx(classes.duration)}>{duration}</Typography>
+        {note.config.pinned && <Pin className={clsx(classes.pin)}></Pin>}
       </Box>
       <Box className={clsx(classes.rightPanel)}>
         {header && (
@@ -166,7 +172,7 @@ export default function NoteCard(props: Props) {
             {summary && summary.summary}
           </Typography>
         )}
-        {images.length && (
+        {images.length > 0 && (
           <Box className={clsx(classes.images)}>
             <Box className={clsx(classes.imagesWrapper)}>
               {images.map(image => (
