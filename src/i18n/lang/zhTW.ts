@@ -380,8 +380,6 @@ export const zhTW = {
     "widget/crossnote.bilibili/url-placeholder":
       "在這裡插入 Bilibili 視頻的鏈接，然後按 '回車' 鍵來插入",
     "widget/crossnote.image/image-helper": "圖片助手",
-    "widget/crossnote.image/set-as-cover-image-in-note-card":
-      "設置為筆記卡片的封面圖片",
     "widget/crossnote.image/image-url-placeholder":
       "在這裡輸入圖片鏈接，然後按 '回車' 鍵來插入",
     "widget/crossnote.image/click-here-to-browse-image-file":

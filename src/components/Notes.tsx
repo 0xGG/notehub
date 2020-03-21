@@ -220,6 +220,16 @@ export default function Notes(props: Props) {
               </Typography>
             </Box>
           ) : crossnoteContainer.selectedSection.type ===
+            SelectedSectionType.Encrypted ? (
+            <Box className={clsx(classes.row)}>
+              <span role="img" aria-label="encrypted-notes">
+                🔐
+              </span>
+              <Typography className={clsx(classes.sectionName)}>
+                {" encrypted"}
+              </Typography>
+            </Box>
+          ) : crossnoteContainer.selectedSection.type ===
             SelectedSectionType.Conflicted ? (
             <Box className={clsx(classes.row)}>
               <span role="img" aria-label="conflicted-notes">
@@ -274,11 +284,7 @@ export default function Notes(props: Props) {
               "i"
             );
 
-            if (
-              note.title.match(regexp) ||
-              note.markdown.match(regexp) ||
-              note.filePath.match(regexp)
-            ) {
+            if (note.markdown.match(regexp) || note.filePath.match(regexp)) {
               return (
                 <NoteCard
                   key={"note-card-" + note.filePath}

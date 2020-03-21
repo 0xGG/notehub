@@ -23,7 +23,8 @@ export enum SelectedSectionType {
   Untagged = "Untagged",
   Directory = "Directory",
   Tag = "Tag",
-  Conflicted = "Conflicted"
+  Conflicted = "Conflicted",
+  Encrypted = "Encrypted"
 }
 
 export interface SelectedSection {
@@ -70,9 +71,20 @@ function useCrossnoteContainer(initialState: InitialState) {
   );
 
   const updateNoteMarkdown = useCallback(
-    (note: Note, markdown: string, callback?: (status: string) => void) => {
+    (
+      note: Note,
+      markdown: string,
+      password?: string,
+      callback?: (status: string) => void
+    ) => {
       crossnote
-        .writeNote(note.notebook, note.filePath, markdown, note.config)
+        .writeNote(
+          note.notebook,
+          note.filePath,
+          markdown,
+          note.config,
+          password
+        )
         .then(noteConfig => {
           note.config = noteConfig;
           note.markdown = markdown;
@@ -186,7 +198,6 @@ function useCrossnoteContainer(initialState: InitialState) {
         const note: Note = {
           notebook: selectedNotebook,
           filePath: filePath,
-          title: "",
           markdown: "",
           config: noteConfig
         };
@@ -373,6 +384,16 @@ function useCrossnoteContainer(initialState: InitialState) {
     setNotebookTagNode(crossnote.getNotebookTagNodeFromNotes(notebookNotes));
   }, [notebookNotes, crossnote]);
 
+  const getNote = useCallback(
+    async (notebook: Notebook, filePath: string) => {
+      if (!crossnote) {
+        return;
+      }
+      return await crossnote.getNote(notebook, filePath);
+    },
+    [crossnote]
+  );
+
   useEffect(() => {
     if (!crossnote) {
       return;
@@ -474,6 +495,10 @@ function useCrossnoteContainer(initialState: InitialState) {
         notes = notebookNotes.filter(note => {
           return crossnote.markdownHasConflicts(note.markdown);
         });
+      } else if (selectedSection.type === SelectedSectionType.Encrypted) {
+        notes = notebookNotes.filter(note => {
+          return note.config.encryption;
+        });
       } else {
         // SelectedSectionType.Directory
         if (includeSubdirectories) {
@@ -545,7 +570,8 @@ function useCrossnoteContainer(initialState: InitialState) {
     checkoutNote,
     displayMobileEditor,
     setDisplayMobileEditor,
-    updateNotebookTagNode
+    updateNotebookTagNode,
+    getNote
   };
 }
 

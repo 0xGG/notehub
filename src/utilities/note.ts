@@ -68,7 +68,7 @@ export async function generateSummaryFromMarkdown(
   let title = "",
     summary = "",
     images: string[] = [];
-  markdown = markdown.replace(/^---.+?\n---/, ""); // Remove front matter
+  markdown = markdown.replace(/^---([\w\W]+?\n---)/, "").trim(); // Remove front matter
   let contentString = markdown;
 
   const titleMatch = markdown.match(/^#\s.+$/gim);

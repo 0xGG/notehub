@@ -84,7 +84,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     pin: {
       color: theme.palette.secondary.main,
-      marginTop: theme.spacing(2)
+      marginTop: theme.spacing(1)
     }
   })
 );
@@ -112,9 +112,14 @@ export default function NoteCard(props: Props) {
     .replace(/\syears?/, "y");
 
   useEffect(() => {
-    setHeader(getHeaderFromMarkdown(note.markdown));
+    setHeader(
+      (note.config.encryption && note.config.encryption.title) ||
+        getHeaderFromMarkdown(note.markdown)
+    );
     generateSummaryFromMarkdown(
-      note.markdown.trim() || t("general/this-note-is-empty")
+      note.config.encryption
+        ? "🔐 encrypted"
+        : note.markdown.trim() || t("general/this-note-is-empty")
     )
       .then(summary => {
         setSummary(summary);
@@ -126,7 +131,7 @@ export default function NoteCard(props: Props) {
         setImages(images);
       })
       .catch(error => {});
-  }, [note.markdown, t]);
+  }, [note.markdown, note.config.encryption, t]);
 
   useEffect(() => {
     crossnoteContainer.crossnote.getStatus(note).then(status => {

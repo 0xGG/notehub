@@ -6,9 +6,10 @@ import PouchdbFind from "pouchdb-find";
 // @ts-ignore
 import diff3Merge from "diff3";
 import { randomID } from "../utilities/utils";
-import { getHeaderFromMarkdown } from "../utilities/note";
+import AES from "crypto-js/aes";
 import { Stats } from "fs";
 import * as matter from "gray-matter";
+import { getHeaderFromMarkdown } from "../utilities/note";
 
 export interface Notebook {
   _id: string;
@@ -26,7 +27,6 @@ export interface Notebook {
 export interface Note {
   notebook: Notebook;
   filePath: string;
-  title: string;
   markdown: string;
   config: NoteConfig;
   // createdAt: Date; // <- Can't get modifiedAt time
@@ -45,12 +45,18 @@ export interface TagNode {
   // numNotes: number;
 }
 
+export interface NoteConfigEncryption {
+  title: string;
+  // method: string;? // Default AES256
+}
+
 export interface NoteConfig {
   id?: string;
   createdAt: Date;
   modifiedAt: Date;
   tags?: string[];
   pinned?: boolean;
+  encryption?: NoteConfigEncryption;
 }
 
 export interface NotebookConfig {
@@ -837,7 +843,7 @@ export default class Crossnote {
     });
   }
 
-  private async getNote(
+  public async getNote(
     notebook: Notebook,
     filePath: string,
     stats?: Stats
@@ -865,17 +871,20 @@ export default class Crossnote {
       try {
         const data = matter.default(markdown);
         noteConfig = Object.assign(noteConfig, data.data["note"] || {});
-        markdown = data.content;
+        const frontMatter: any = Object.assign({}, data.data);
+        delete frontMatter["note"];
+        markdown = matter.default.stringify(data.content, frontMatter);
       } catch (error) {
         // Do nothing
-        markdown = "Please fix front-matter\n\n" + markdown;
+        markdown =
+          "Please fix front-matter. (👈 Don't forget to delete this line)\n\n" +
+          markdown;
       }
 
       // Create note
       const note: Note = {
         notebook: notebook,
         filePath: path.relative(notebook.dir, absFilePath),
-        title: getHeaderFromMarkdown(markdown),
         markdown,
         config: noteConfig
       };
@@ -928,19 +937,35 @@ export default class Crossnote {
     notebook: Notebook,
     filePath: string,
     markdown: string,
-    noteConfig: NoteConfig
+    noteConfig: NoteConfig,
+    password?: string
   ): Promise<NoteConfig> {
     noteConfig.modifiedAt = new Date();
     try {
       const data = matter.default(markdown);
       if (data.data["note"] && data.data["note"] instanceof Object) {
-        noteConfig = Object.assign({}, noteConfig, data.data["note"]);
+        noteConfig = Object.assign({}, noteConfig, data.data["note"] || {});
       }
-      markdown = matter.default.stringify(
-        markdown,
-        Object.assign(data.data || {}, { note: noteConfig })
-      );
+      const frontMatter = Object.assign(data.data || {}, { note: noteConfig });
+      markdown = data.content;
+      if (noteConfig.encryption) {
+        // TODO: Refactor
+        noteConfig.encryption.title = getHeaderFromMarkdown(markdown);
+        markdown = AES.encrypt(
+          JSON.stringify({ markdown }),
+          password || ""
+        ).toString();
+      }
+      markdown = matter.default.stringify(markdown, frontMatter);
     } catch (error) {
+      if (noteConfig.encryption) {
+        // TODO: Refactor
+        noteConfig.encryption.title = getHeaderFromMarkdown(markdown);
+        markdown = AES.encrypt(
+          JSON.stringify({ markdown }),
+          password || ""
+        ).toString();
+      }
       markdown = matter.default.stringify(markdown, { note: noteConfig });
     }
 

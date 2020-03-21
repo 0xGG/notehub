@@ -409,8 +409,6 @@ export const jaJP = {
     "widget/crossnote.bilibili/url-placeholder":
       "ここにビリビリのビデオへのリンクを挿入し、「Enter」を押して挿入します",
     "widget/crossnote.image/image-helper": "画像アシスタント",
-    "widget/crossnote.image/set-as-cover-image-in-note-card":
-      "ノートカードの表紙画像として設定",
     "widget/crossnote.image/image-url-placeholder":
       "ここに画像リンクを入力し、「Enter」を押して挿入します",
     "widget/crossnote.image/click-here-to-browse-image-file":
