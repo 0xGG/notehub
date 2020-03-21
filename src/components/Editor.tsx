@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { Note } from "../lib/crossnote";
 import { CrossnoteContainer } from "../containers/crossnote";
 import { useTranslation } from "react-i18next";
+import * as CryptoJS from "crypto-js";
 import {
   Box,
   Typography,
@@ -39,12 +40,14 @@ import {
   Pin,
   PinOutline,
   LockOpenOutline,
-  Lock
+  Lock,
+  LockOpen
 } from "mdi-material-ui";
 import { renderPreview } from "vickymd/preview";
 import PushNotebookDialog from "./PushNotebookDialog";
 import Noty from "noty";
 import { formatDistance } from "date-fns";
+import { getHeaderFromMarkdown } from "../utilities/note";
 
 const VickyMD = require("vickymd");
 
@@ -206,13 +209,35 @@ export default function Editor(props: Props) {
   const [tagsMenuAnchorEl, setTagsMenuAnchorEl] = useState<HTMLElement>(null);
   const [tagName, setTagName] = useState<string>("");
   const [tagNames, setTagNames] = useState<string[]>([]);
+  const [toggleEncryptionDialogOpen, setToggleEncryptionDialogOpen] = useState<
+    boolean
+  >(false);
+  const [toggleEncryptionPassword, setToggleEncryptionPassword] = useState<
+    string
+  >("");
+  const [decryptionDialogOpen, setDecryptionDialogOpen] = useState<boolean>(
+    false
+  );
+  const [decryptionPassword, setDecryptionPassword] = useState<string>("");
+
   const crossnoteContainer = CrossnoteContainer.useContainer();
+
   const { t } = useTranslation();
 
   const closeFilePathDialog = useCallback(() => {
     setFilePathDialogOpen(false);
     setNewFilePath(note.filePath);
   }, [note]);
+
+  const closeEncryptionDialog = useCallback(() => {
+    setToggleEncryptionPassword("");
+    setToggleEncryptionDialogOpen(false);
+  }, []);
+
+  const closeDecryptionDialog = useCallback(() => {
+    setDecryptionPassword("");
+    setDecryptionDialogOpen(false);
+  }, []);
 
   const changeFilePath = useCallback(
     (newFilePath: string) => {
@@ -292,14 +317,19 @@ export default function Editor(props: Props) {
       const newTagNames =
         tagNames.indexOf(tag) >= 0 ? [...tagNames] : [tag, ...tagNames];
       note.config.tags = newTagNames.sort((x, y) => x.localeCompare(y));
-      crossnoteContainer.updateNoteMarkdown(note, editor.getValue(), status => {
-        setGitStatus(status);
-      });
+      crossnoteContainer.updateNoteMarkdown(
+        note,
+        editor.getValue(),
+        decryptionPassword,
+        status => {
+          setGitStatus(status);
+        }
+      );
       crossnoteContainer.updateNotebookTagNode();
       return newTagNames;
     });
     setTagName("");
-  }, [tagName, note, editor]);
+  }, [tagName, note, editor, decryptionPassword]);
 
   const deleteTag = useCallback(
     (tagName: string) => {
@@ -309,6 +339,7 @@ export default function Editor(props: Props) {
         crossnoteContainer.updateNoteMarkdown(
           note,
           editor.getValue(),
+          decryptionPassword,
           status => {
             setGitStatus(status);
           }
@@ -317,8 +348,104 @@ export default function Editor(props: Props) {
         return newTagNames;
       });
     },
-    [note, editor]
+    [note, editor, decryptionPassword]
   );
+
+  const toggleEncryption = useCallback(() => {
+    if (note && editor) {
+      const markdown = editor.getValue();
+      if (note.config.encryption) {
+        // Disable encryption
+        // Check if the password is correct
+        crossnoteContainer
+          .getNote(note.notebook, note.filePath)
+          .then(n => {
+            try {
+              const bytes = CryptoJS.AES.decrypt(
+                n.markdown,
+                toggleEncryptionPassword
+              );
+              const json = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+              // Disable encryption
+              note.config.encryption = null;
+              delete note.config.encryption;
+              crossnoteContainer.updateNoteMarkdown(
+                note,
+                json.markdown,
+                "",
+                status => {
+                  setGitStatus(status);
+                  setDecryptionPassword("");
+                  closeEncryptionDialog();
+                  editor.setValue(json.markdown);
+                  editor.setOption("readOnly", false);
+                }
+              );
+            } catch (error) {
+              new Noty({
+                type: "error",
+                text: "Failed to disable encryption",
+                layout: "topRight",
+                theme: "relax",
+                timeout: 5000
+              }).show();
+            }
+          })
+          .catch(error => {
+            new Noty({
+              type: "error",
+              text: "Failed to disable encryption",
+              layout: "topRight",
+              theme: "relax",
+              timeout: 5000
+            }).show();
+          });
+      } else {
+        // Enable encryption
+        note.config.encryption = {
+          title: getHeaderFromMarkdown(markdown)
+        };
+        crossnoteContainer.updateNoteMarkdown(
+          note,
+          editor.getValue(),
+          toggleEncryptionPassword,
+          status => {
+            setDecryptionPassword(toggleEncryptionPassword);
+            setGitStatus(status);
+            closeEncryptionDialog();
+          }
+        );
+      }
+    }
+  }, [note, editor, closeEncryptionDialog, toggleEncryptionPassword]);
+
+  const decryptNote = useCallback(() => {
+    if (note && editor) {
+      crossnoteContainer
+        .getNote(note.notebook, note.filePath)
+        .then(n => {
+          // Decrypt
+          try {
+            const bytes = CryptoJS.AES.decrypt(n.markdown, decryptionPassword);
+            const json = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+            editor.setOption("readOnly", false);
+            editor.setValue(json.markdown);
+            setDecryptionDialogOpen(false); // Don't clear decryptionPassword
+          } catch (error) {
+            new Noty({
+              type: "error",
+              text: "Decryption failed",
+              layout: "topRight",
+              theme: "relax",
+              timeout: 5000
+            }).show();
+          }
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    }
+  }, [note, editor, decryptionPassword, closeDecryptionDialog]);
 
   const togglePin = useCallback(() => {
     if (note && editor) {
@@ -326,11 +453,16 @@ export default function Editor(props: Props) {
       if (!note.config.pinned) {
         delete note.config.pinned;
       }
-      crossnoteContainer.updateNoteMarkdown(note, editor.getValue(), status => {
-        setGitStatus(status);
-      });
+      crossnoteContainer.updateNoteMarkdown(
+        note,
+        editor.getValue(),
+        decryptionPassword,
+        status => {
+          setGitStatus(status);
+        }
+      );
     }
-  }, [note, editor]);
+  }, [note, editor, decryptionPassword]);
 
   useEffect(() => {
     setNewFilePath(note.filePath);
@@ -342,13 +474,27 @@ export default function Editor(props: Props) {
     });
   }, [note, crossnoteContainer.crossnote]);
 
-  /*
+  // Decryption
   useEffect(() => {
-    if (crossnoteContainer.displayMobileEditor && editor) {
-      editor.setValue(note.markdown || "");
+    if (!editor) return;
+    if (note.config.encryption) {
+      crossnoteContainer
+        .getNote(note.notebook, note.filePath)
+        .then(n => {
+          setDecryptionPassword("");
+          editor.setOption("readOnly", true);
+          editor.setValue(n.markdown);
+          setDecryptionDialogOpen(true);
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    } else {
+      setDecryptionPassword("");
+      editor.setOption("readOnly", false);
+      editor.setValue(note.markdown);
     }
-  }, [crossnoteContainer.displayMobileEditor, editor, note]);
-  */
+  }, [editor, note]);
 
   useEffect(() => {
     if (textAreaElement && !editor) {
@@ -380,21 +526,29 @@ export default function Editor(props: Props) {
 
   useEffect(() => {
     if (editor && note) {
-      setTagNames(note.config.tags);
-      editor.setValue(note.markdown);
+      setTagNames(note.config.tags || []);
       const handler = () => {
+        if (editor.getOption("readOnly")) {
+          // This line is necessary for decryption...
+          return;
+        }
         const markdown = editor.getValue();
-        crossnoteContainer.updateNoteMarkdown(note, markdown, status => {
-          setGitStatus(status);
-          setTagNames(note.config.tags); // After resolve conflicts
-        });
+        crossnoteContainer.updateNoteMarkdown(
+          note,
+          markdown,
+          decryptionPassword,
+          status => {
+            setGitStatus(status);
+            setTagNames(note.config.tags || []); // After resolve conflicts
+          }
+        );
       };
       editor.on("changes", handler);
       return () => {
         editor.off("changes", handler);
       };
     }
-  }, [editor, note]);
+  }, [editor, note, decryptionPassword]);
 
   useEffect(() => {
     if (!editor) return;
@@ -729,7 +883,7 @@ export default function Editor(props: Props) {
                   classes.controlBtn,
                   note.config.encryption && classes.controlBtnSelectedSecondary
                 )}
-                // onClick={togglePin}
+                onClick={() => setToggleEncryptionDialogOpen(true)}
               >
                 {note.config.encryption ? (
                   <Lock></Lock>
@@ -963,6 +1117,61 @@ export default function Editor(props: Props) {
         <DialogActions>
           <Button onClick={() => changeFilePath(newFilePath)}>Save</Button>
           <Button onClick={closeFilePathDialog}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={toggleEncryptionDialogOpen} onClose={closeEncryptionDialog}>
+        <DialogTitle>
+          {note.config.encryption
+            ? "Disable the encryption"
+            : "Encrypt this note with password"}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            value={toggleEncryptionPassword}
+            autoFocus={true}
+            onChange={event => setToggleEncryptionPassword(event.target.value)}
+            onKeyUp={event => {
+              if (event.which === 13) {
+                toggleEncryption();
+              }
+            }}
+            placeholder={"password"}
+            type={"password"}
+          ></TextField>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant={"contained"}
+            color={"primary"}
+            onClick={toggleEncryption}
+          >
+            {note.config.encryption ? <Lock></Lock> : <LockOpen></LockOpen>}
+            {note.config.encryption ? "Disable encryption" : "Encrypt"}
+          </Button>
+          <Button onClick={closeEncryptionDialog}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={decryptionDialogOpen} onClose={closeDecryptionDialog}>
+        <DialogTitle>{"Decrypt this note"}</DialogTitle>
+        <DialogContent>
+          <TextField
+            value={decryptionPassword}
+            autoFocus={true}
+            onChange={event => setDecryptionPassword(event.target.value)}
+            placeholder={"password"}
+            type={"password"}
+            onKeyUp={event => {
+              if (event.which === 13) {
+                decryptNote();
+              }
+            }}
+          ></TextField>
+        </DialogContent>
+        <DialogActions>
+          <Button variant={"contained"} color={"primary"} onClick={decryptNote}>
+            {"Decrypt"}
+          </Button>
+          <Button onClick={closeDecryptionDialog}>Cancel</Button>
         </DialogActions>
       </Dialog>
       <PushNotebookDialog

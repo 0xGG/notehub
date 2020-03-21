@@ -70,9 +70,20 @@ function useCrossnoteContainer(initialState: InitialState) {
   );
 
   const updateNoteMarkdown = useCallback(
-    (note: Note, markdown: string, callback?: (status: string) => void) => {
+    (
+      note: Note,
+      markdown: string,
+      password?: string,
+      callback?: (status: string) => void
+    ) => {
       crossnote
-        .writeNote(note.notebook, note.filePath, markdown, note.config)
+        .writeNote(
+          note.notebook,
+          note.filePath,
+          markdown,
+          note.config,
+          password
+        )
         .then(noteConfig => {
           note.config = noteConfig;
           note.markdown = markdown;

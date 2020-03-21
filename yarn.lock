@@ -2001,6 +2001,11 @@
   resolved "https://registry.npm.taobao.org/@types/color-name/download/@types/color-name-1.1.1.tgz?cache=0&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Fcolor-name%2Fdownload%2F%40types%2Fcolor-name-1.1.1.tgz#1c1261bbeaa10a8055bbc5d8ab84b7b2afc846a0"
   integrity sha1-HBJhu+qhCoBVu8XYq4S3sq/IRqA=
 
+"@types/crypto-js@^3.1.43":
+  version "3.1.43"
+  resolved "https://registry.npm.taobao.org/@types/crypto-js/download/@types/crypto-js-3.1.43.tgz#b859347d6289ba13e347c335a4c9efa63337a748"
+  integrity sha1-uFk0fWKJuhPjR8M1pMnvpjM3p0g=
+
 "@types/debounce@1.2.0":
   version "1.2.0"
   resolved "https://registry.npm.taobao.org/@types/debounce/download/@types/debounce-1.2.0.tgz#9ee99259f41018c640b3929e1bb32c3dcecdb192"
