@@ -274,11 +274,7 @@ export default function Notes(props: Props) {
               "i"
             );
 
-            if (
-              note.title.match(regexp) ||
-              note.markdown.match(regexp) ||
-              note.filePath.match(regexp)
-            ) {
+            if (note.markdown.match(regexp) || note.filePath.match(regexp)) {
               return (
                 <NoteCard
                   key={"note-card-" + note.filePath}

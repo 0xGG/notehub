@@ -186,7 +186,6 @@ function useCrossnoteContainer(initialState: InitialState) {
         const note: Note = {
           notebook: selectedNotebook,
           filePath: filePath,
-          title: "",
           markdown: "",
           config: noteConfig
         };
@@ -373,6 +372,16 @@ function useCrossnoteContainer(initialState: InitialState) {
     setNotebookTagNode(crossnote.getNotebookTagNodeFromNotes(notebookNotes));
   }, [notebookNotes, crossnote]);
 
+  const getNote = useCallback(
+    async (notebook: Notebook, filePath: string) => {
+      if (!crossnote) {
+        return;
+      }
+      return await crossnote.getNote(notebook, filePath);
+    },
+    [crossnote]
+  );
+
   useEffect(() => {
     if (!crossnote) {
       return;
@@ -545,7 +554,8 @@ function useCrossnoteContainer(initialState: InitialState) {
     checkoutNote,
     displayMobileEditor,
     setDisplayMobileEditor,
-    updateNotebookTagNode
+    updateNotebookTagNode,
+    getNote
   };
 }
 

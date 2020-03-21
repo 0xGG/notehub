@@ -37,7 +37,9 @@ import {
   Tag,
   Close,
   Pin,
-  PinOutline
+  PinOutline,
+  LockOpenOutline,
+  Lock
 } from "mdi-material-ui";
 import { renderPreview } from "vickymd/preview";
 import PushNotebookDialog from "./PushNotebookDialog";
@@ -321,6 +323,9 @@ export default function Editor(props: Props) {
   const togglePin = useCallback(() => {
     if (note && editor) {
       note.config.pinned = !note.config.pinned;
+      if (!note.config.pinned) {
+        delete note.config.pinned;
+      }
       crossnoteContainer.updateNoteMarkdown(note, editor.getValue(), status => {
         setGitStatus(status);
       });
@@ -337,11 +342,13 @@ export default function Editor(props: Props) {
     });
   }, [note, crossnoteContainer.crossnote]);
 
+  /*
   useEffect(() => {
     if (crossnoteContainer.displayMobileEditor && editor) {
       editor.setValue(note.markdown || "");
     }
   }, [crossnoteContainer.displayMobileEditor, editor, note]);
+  */
 
   useEffect(() => {
     if (textAreaElement && !editor) {
@@ -714,6 +721,21 @@ export default function Editor(props: Props) {
                 onClick={togglePin}
               >
                 {note.config.pinned ? <Pin></Pin> : <PinOutline></PinOutline>}
+              </Button>
+            </Tooltip>
+            <Tooltip title={"Encryption"}>
+              <Button
+                className={clsx(
+                  classes.controlBtn,
+                  note.config.encryption && classes.controlBtnSelectedSecondary
+                )}
+                // onClick={togglePin}
+              >
+                {note.config.encryption ? (
+                  <Lock></Lock>
+                ) : (
+                  <LockOpenOutline></LockOpenOutline>
+                )}
               </Button>
             </Tooltip>
           </ButtonGroup>

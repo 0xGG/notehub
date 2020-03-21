@@ -26,7 +26,6 @@ export interface Notebook {
 export interface Note {
   notebook: Notebook;
   filePath: string;
-  title: string;
   markdown: string;
   config: NoteConfig;
   // createdAt: Date; // <- Can't get modifiedAt time
@@ -56,7 +55,7 @@ export interface NoteConfig {
   modifiedAt: Date;
   tags?: string[];
   pinned?: boolean;
-  encrypted?: NoteConfigEncryption;
+  encryption?: NoteConfigEncryption;
 }
 
 export interface NotebookConfig {
@@ -843,7 +842,7 @@ export default class Crossnote {
     });
   }
 
-  private async getNote(
+  public async getNote(
     notebook: Notebook,
     filePath: string,
     stats?: Stats
@@ -871,17 +870,20 @@ export default class Crossnote {
       try {
         const data = matter.default(markdown);
         noteConfig = Object.assign(noteConfig, data.data["note"] || {});
-        markdown = data.content;
+        const frontMatter: any = Object.assign({}, data.data);
+        delete frontMatter["note"];
+        markdown = matter.default.stringify(data.content, frontMatter);
       } catch (error) {
         // Do nothing
-        markdown = "Please fix front-matter\n\n" + markdown;
+        markdown =
+          "Please fix front-matter. (👈 Don't forget to delete this line)\n\n" +
+          markdown;
       }
 
       // Create note
       const note: Note = {
         notebook: notebook,
         filePath: path.relative(notebook.dir, absFilePath),
-        title: getHeaderFromMarkdown(markdown),
         markdown,
         config: noteConfig
       };
