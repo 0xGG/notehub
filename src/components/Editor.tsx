@@ -219,6 +219,7 @@ export default function Editor(props: Props) {
     false
   );
   const [decryptionPassword, setDecryptionPassword] = useState<string>("");
+  const [isDecrypted, setIsDecrypted] = useState<boolean>(false);
 
   const crossnoteContainer = CrossnoteContainer.useContainer();
 
@@ -304,7 +305,7 @@ export default function Editor(props: Props) {
 
   const addTag = useCallback(() => {
     let tag = tagName.trim() || "";
-    if (!note || !tag.length || !editor) {
+    if (!note || !tag.length || !editor || !isDecrypted) {
       return;
     }
     tag = tag
@@ -329,26 +330,28 @@ export default function Editor(props: Props) {
       return newTagNames;
     });
     setTagName("");
-  }, [tagName, note, editor, decryptionPassword]);
+  }, [tagName, note, editor, decryptionPassword, isDecrypted]);
 
   const deleteTag = useCallback(
     (tagName: string) => {
-      setTagNames(tagNames => {
-        const newTagNames = tagNames.filter(t => t !== tagName);
-        note.config.tags = newTagNames.sort((x, y) => x.localeCompare(y));
-        crossnoteContainer.updateNoteMarkdown(
-          note,
-          editor.getValue(),
-          decryptionPassword,
-          status => {
-            setGitStatus(status);
-          }
-        );
-        crossnoteContainer.updateNotebookTagNode();
-        return newTagNames;
-      });
+      if (note && editor && isDecrypted) {
+        setTagNames(tagNames => {
+          const newTagNames = tagNames.filter(t => t !== tagName);
+          note.config.tags = newTagNames.sort((x, y) => x.localeCompare(y));
+          crossnoteContainer.updateNoteMarkdown(
+            note,
+            editor.getValue(),
+            decryptionPassword,
+            status => {
+              setGitStatus(status);
+            }
+          );
+          crossnoteContainer.updateNotebookTagNode();
+          return newTagNames;
+        });
+      }
     },
-    [note, editor, decryptionPassword]
+    [note, editor, decryptionPassword, isDecrypted]
   );
 
   const toggleEncryption = useCallback(() => {
@@ -376,6 +379,7 @@ export default function Editor(props: Props) {
                 status => {
                   setGitStatus(status);
                   setDecryptionPassword("");
+                  setIsDecrypted(true);
                   closeEncryptionDialog();
                   editor.setValue(json.markdown);
                   editor.setOption("readOnly", false);
@@ -411,6 +415,7 @@ export default function Editor(props: Props) {
           toggleEncryptionPassword,
           status => {
             setDecryptionPassword(toggleEncryptionPassword);
+            setIsDecrypted(true);
             setGitStatus(status);
             closeEncryptionDialog();
           }
@@ -430,6 +435,7 @@ export default function Editor(props: Props) {
             const json = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
             editor.setOption("readOnly", false);
             editor.setValue(json.markdown);
+            setIsDecrypted(true);
             setDecryptionDialogOpen(false); // Don't clear decryptionPassword
           } catch (error) {
             new Noty({
@@ -439,16 +445,18 @@ export default function Editor(props: Props) {
               theme: "relax",
               timeout: 5000
             }).show();
+            setIsDecrypted(false);
           }
         })
         .catch(error => {
+          setIsDecrypted(false);
           console.log(error);
         });
     }
   }, [note, editor, decryptionPassword, closeDecryptionDialog]);
 
   const togglePin = useCallback(() => {
-    if (note && editor) {
+    if (note && editor && isDecrypted) {
       note.config.pinned = !note.config.pinned;
       if (!note.config.pinned) {
         delete note.config.pinned;
@@ -462,7 +470,7 @@ export default function Editor(props: Props) {
         }
       );
     }
-  }, [note, editor, decryptionPassword]);
+  }, [note, editor, decryptionPassword, isDecrypted]);
 
   useEffect(() => {
     setNewFilePath(note.filePath);
@@ -478,6 +486,7 @@ export default function Editor(props: Props) {
   useEffect(() => {
     if (!editor) return;
     if (note.config.encryption) {
+      setIsDecrypted(false);
       crossnoteContainer
         .getNote(note.notebook, note.filePath)
         .then(n => {
@@ -490,6 +499,7 @@ export default function Editor(props: Props) {
           console.log(error);
         });
     } else {
+      setIsDecrypted(true);
       setDecryptionPassword("");
       editor.setOption("readOnly", false);
       editor.setValue(note.markdown);
@@ -528,7 +538,7 @@ export default function Editor(props: Props) {
     if (editor && note) {
       setTagNames(note.config.tags || []);
       const handler = () => {
-        if (editor.getOption("readOnly")) {
+        if (editor.getOption("readOnly") || !isDecrypted) {
           // This line is necessary for decryption...
           return;
         }
@@ -548,7 +558,7 @@ export default function Editor(props: Props) {
         editor.off("changes", handler);
       };
     }
-  }, [editor, note, decryptionPassword]);
+  }, [editor, note, decryptionPassword, isDecrypted]);
 
   useEffect(() => {
     if (!editor) return;
@@ -861,6 +871,7 @@ export default function Editor(props: Props) {
             <Tooltip title={"Tags"}>
               <Button
                 className={clsx(classes.controlBtn)}
+                disabled={!isDecrypted}
                 onClick={event => setTagsMenuAnchorEl(event.currentTarget)}
               >
                 <Tag></Tag>
@@ -872,6 +883,7 @@ export default function Editor(props: Props) {
                   classes.controlBtn,
                   note.config.pinned && classes.controlBtnSelectedSecondary
                 )}
+                disabled={!isDecrypted}
                 onClick={togglePin}
               >
                 {note.config.pinned ? <Pin></Pin> : <PinOutline></PinOutline>}
