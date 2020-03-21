@@ -8,7 +8,7 @@ import diff3Merge from "diff3";
 import { randomID } from "../utilities/utils";
 import AES from "crypto-js/aes";
 import { Stats } from "fs";
-import * as matter from "gray-matter";
+import matter from "gray-matter";
 import { getHeaderFromMarkdown } from "../utilities/note";
 
 export interface Notebook {
@@ -843,6 +843,20 @@ export default class Crossnote {
     });
   }
 
+  private matterStringify(markdown: string, frontMatter: any) {
+    frontMatter = frontMatter || {};
+    const yamlStr = (window as any)["YAML"].stringify(frontMatter).trim();
+    if (yamlStr === "{}" || !yamlStr) {
+      return markdown;
+    } else {
+      return `---
+${yamlStr}
+---
+
+${markdown}`;
+    }
+  }
+
   public async getNote(
     notebook: Notebook,
     filePath: string,
@@ -869,11 +883,12 @@ export default class Crossnote {
       };
 
       try {
-        const data = matter.default(markdown);
+        const data = matter(markdown);
         noteConfig = Object.assign(noteConfig, data.data["note"] || {});
         const frontMatter: any = Object.assign({}, data.data);
         delete frontMatter["note"];
-        markdown = matter.default.stringify(data.content, frontMatter);
+        // markdown = matter.stringify(data.content, frontMatter); // <= NOTE: I think gray-matter has bug. Although I delete "note" section from front-matter, it still includes it.
+        markdown = this.matterStringify(data.content, frontMatter);
       } catch (error) {
         // Do nothing
         markdown =
@@ -942,7 +957,7 @@ export default class Crossnote {
   ): Promise<NoteConfig> {
     noteConfig.modifiedAt = new Date();
     try {
-      const data = matter.default(markdown);
+      const data = matter(markdown);
       if (data.data["note"] && data.data["note"] instanceof Object) {
         noteConfig = Object.assign({}, noteConfig, data.data["note"] || {});
       }
@@ -956,7 +971,7 @@ export default class Crossnote {
           password || ""
         ).toString();
       }
-      markdown = matter.default.stringify(markdown, frontMatter);
+      markdown = this.matterStringify(markdown, frontMatter);
     } catch (error) {
       if (noteConfig.encryption) {
         // TODO: Refactor
@@ -966,7 +981,7 @@ export default class Crossnote {
           password || ""
         ).toString();
       }
-      markdown = matter.default.stringify(markdown, { note: noteConfig });
+      markdown = this.matterStringify(markdown, { note: noteConfig });
     }
 
     await this.writeFile(path.resolve(notebook.dir, filePath), markdown);

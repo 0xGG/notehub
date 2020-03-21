@@ -270,7 +270,7 @@ function useCrossnoteContainer(initialState: InitialState) {
           return n._id !== notebook._id;
         })
       );
-      setSelectedNotebook(selectedNotebook);
+      _setSelectedNotebook(selectedNotebook);
     },
     [crossnote]
   );
@@ -409,7 +409,7 @@ function useCrossnoteContainer(initialState: InitialState) {
         if (!notebook) {
           notebook = notebooks[0];
         }
-        setSelectedNotebook(notebook); // TODO: <= default selected
+        _setSelectedNotebook(notebook); // TODO: <= default selected
       } else {
         /*
         notebook = await crossnote.cloneNotebook({
@@ -423,7 +423,7 @@ function useCrossnoteContainer(initialState: InitialState) {
           gitURL: ""
         });
         setNotebooks([notebook]);
-        setSelectedNotebook(notebook);
+        _setSelectedNotebook(notebook);
       }
     })();
   }, [crossnote]);
@@ -536,6 +536,17 @@ function useCrossnoteContainer(initialState: InitialState) {
   const _setSelectedNotebook = useCallback(
     (notebook: Notebook) => {
       localStorage.setItem("selectedNotebookID", notebook._id);
+      setNotebookNotes([]);
+      setNotebookDirectories({
+        name: ".",
+        path: ".",
+        children: []
+      });
+      setNotebookTagNode({
+        name: ".",
+        path: ".",
+        children: []
+      });
       setSelectedNotebook(notebook);
     },
     [setSelectedNotebook]
