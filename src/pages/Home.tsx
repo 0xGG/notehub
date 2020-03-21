@@ -20,10 +20,10 @@ import React, { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { PlusCircle } from "mdi-material-ui";
 import { CrossnoteContainer } from "../containers/crossnote";
-import Notes from "../components/Notes";
 import Editor from "../components/Editor";
 import AddNotebookDialog from "../components/AddNotebookDialog";
 import NotebookTreeView from "../components/NotebookTreeView";
+import NotesPanel from "../components/NotesPanel";
 
 const drawerWidth = 200;
 const notesPanelWidth = 350;
@@ -201,7 +201,7 @@ export function Home(props: Props) {
 
   const notesPanel = (
     <Paper className={clsx(classes.notesPanel)}>
-      <Notes toggleDrawer={toggleDrawer}></Notes>
+      <NotesPanel toggleDrawer={toggleDrawer}></NotesPanel>
     </Paper>
   );
 
