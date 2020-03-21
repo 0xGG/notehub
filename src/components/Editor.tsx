@@ -37,7 +37,6 @@ import {
   Tag,
   Close,
   Pin,
-  PinOff,
   PinOutline
 } from "mdi-material-ui";
 import { renderPreview } from "vickymd/preview";

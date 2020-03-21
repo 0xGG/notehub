@@ -45,12 +45,18 @@ export interface TagNode {
   // numNotes: number;
 }
 
+export interface NoteConfigEncryption {
+  title: string;
+  // method: string;? // Default AES256
+}
+
 export interface NoteConfig {
   id?: string;
   createdAt: Date;
   modifiedAt: Date;
   tags?: string[];
   pinned?: boolean;
+  encrypted?: NoteConfigEncryption;
 }
 
 export interface NotebookConfig {

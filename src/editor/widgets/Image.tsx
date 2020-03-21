@@ -52,7 +52,6 @@ function ImageWidget(props: WidgetArgs) {
   const classes = useStyles(props);
   const { t } = useTranslation();
   const [link, setLink] = useState<string>("");
-  const [asCover, setAsCover] = useState<boolean>(false);
   const [imageUploaderElement, setImageUploaderElement] = useState<
     HTMLInputElement
   >(null);
@@ -77,7 +76,7 @@ function ImageWidget(props: WidgetArgs) {
         .then(urls => {
           let markdown = ``;
           urls.forEach(url => {
-            markdown = markdown + `![${asCover ? "cover" : ""}](${url})  \n`;
+            markdown = markdown + `![](${url})  \n`;
           });
           props.replaceSelf(markdown);
         })
@@ -114,20 +113,6 @@ function ImageWidget(props: WidgetArgs) {
       </Box>
       {!uploadingImages && (
         <Box className={clsx(classes.section)}>
-          <FormControlLabel
-            label={t("widget/crossnote.image/set-as-cover-image-in-note-card")}
-            control={
-              <Switch
-                checked={asCover}
-                onChange={() => setAsCover(!asCover)}
-                color={"primary"}
-              ></Switch>
-            }
-          ></FormControlLabel>
-        </Box>
-      )}
-      {!uploadingImages && (
-        <Box className={clsx(classes.section)}>
           <Typography variant={"subtitle1"} style={{ marginBottom: "8px" }}>
             {t("general/Link")}
           </Typography>
@@ -140,7 +125,7 @@ function ImageWidget(props: WidgetArgs) {
             }}
             onKeyDown={event => {
               if (event.which === 13) {
-                props.replaceSelf(`![${asCover ? "cover" : ""}](${link})\n`);
+                props.replaceSelf(`![](${link})\n`);
               }
             }}
             fullWidth={true}

@@ -395,8 +395,6 @@ export const enUS = {
     "widget/crossnote.bilibili/url-placeholder":
       "Enter the Bilibili video URL here, then press 'Enter' to insert.",
     "widget/crossnote.image/image-helper": "Image helper",
-    "widget/crossnote.image/set-as-cover-image-in-note-card":
-      "Set as cover image in note card",
     "widget/crossnote.image/image-url-placeholder":
       "Enter image URL here, then press 'Enter' to insert.",
     "widget/crossnote.image/click-here-to-browse-image-file":
