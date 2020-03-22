@@ -27,6 +27,7 @@ export default function Notes(props: Props) {
   const { t } = useTranslation();
   const crossnoteContainer = CrossnoteContainer.useContainer();
   const [notes, setNotes] = useState<Note[]>([]);
+  const [notesListElement, setNotesListElement] = useState<HTMLElement>(null);
   const searchValue = props.searchValue;
 
   useEffect(() => {
@@ -64,13 +65,49 @@ export default function Notes(props: Props) {
     setNotes([...pinned, ...unpinned]);
   }, [crossnoteContainer.notes, searchValue]);
 
+  useEffect(() => {
+    if (notesListElement) {
+      const keyDownHandler = (event: KeyboardEvent) => {
+        const selectedNote = crossnoteContainer.selectedNote;
+        const notes = crossnoteContainer.notes || [];
+        if (!selectedNote) return;
+        if (event.which === 40) {
+          // Up
+          const currentIndex = notes.findIndex(
+            n => n.filePath === selectedNote.filePath
+          );
+          if (currentIndex >= 0 && currentIndex < notes.length - 1) {
+            crossnoteContainer.setSelectedNote(notes[currentIndex + 1]);
+          }
+        } else if (event.which === 38) {
+          // Down
+          const currentIndex = notes.findIndex(
+            n => n.filePath === selectedNote.filePath
+          );
+          if (currentIndex > 0 && currentIndex < notes.length) {
+            crossnoteContainer.setSelectedNote(notes[currentIndex - 1]);
+          }
+        }
+      };
+      notesListElement.addEventListener("keydown", keyDownHandler);
+      return () => {
+        notesListElement.removeEventListener("keydown", keyDownHandler);
+      };
+    }
+  }, [notesListElement, crossnoteContainer.notes]);
+
   return (
-    <Box className={clsx(classes.notesList)}>
+    <div
+      className={clsx(classes.notesList)}
+      ref={(element: HTMLElement) => {
+        setNotesListElement(element);
+      }}
+    >
       {(notes || []).map(note => {
         return (
           <NoteCard key={"note-card-" + note.filePath} note={note}></NoteCard>
         );
       })}
-    </Box>
+    </div>
   );
 }
