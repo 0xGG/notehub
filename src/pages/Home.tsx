@@ -200,7 +200,7 @@ export function Home(props: Props) {
   );
 
   const notesPanel = (
-    <Paper className={clsx(classes.notesPanel)}>
+    <Paper className={clsx(classes.notesPanel)} id={"notes-panel"}>
       <NotesPanel toggleDrawer={toggleDrawer}></NotesPanel>
     </Paper>
   );
@@ -240,7 +240,7 @@ export function Home(props: Props) {
       <Box className={clsx(classes.mainPanel)} id="main-panel">
         {notesPanel}
         <Paper
-          className={clsx(classes.editorPanel)}
+          className={clsx(classes.editorPanel, "editor-panel")}
           style={{
             display:
               crossnoteContainer.displayMobileEditor &&
