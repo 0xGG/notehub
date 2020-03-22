@@ -395,6 +395,17 @@ function useCrossnoteContainer(initialState: InitialState) {
     [crossnote]
   );
 
+  const openNoteAtPath = useCallback(
+    (filePath: string) => {
+      if (!crossnote) return;
+      const note = notebookNotes.find(n => n.filePath === filePath);
+      if (note) {
+        setSelectedNote(note);
+      }
+    },
+    [crossnote, notebookNotes]
+  );
+
   useEffect(() => {
     if (!crossnote) {
       return;
@@ -587,7 +598,8 @@ function useCrossnoteContainer(initialState: InitialState) {
     setDisplayMobileEditor,
     updateNotebookTagNode,
     getNote,
-    isLoadingNotebook
+    isLoadingNotebook,
+    openNoteAtPath
   };
 }
 

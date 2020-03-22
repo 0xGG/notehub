@@ -5,6 +5,7 @@ import { Note } from "../lib/crossnote";
 import { CrossnoteContainer } from "../containers/crossnote";
 import { useTranslation } from "react-i18next";
 import * as CryptoJS from "crypto-js";
+import * as path from "path";
 import {
   Box,
   Typography,
@@ -22,7 +23,11 @@ import {
   List,
   ListItem
 } from "@material-ui/core";
-import { Editor as CodeMirrorEditor, EditorChangeLinkedList } from "codemirror";
+import {
+  Editor as CodeMirrorEditor,
+  EditorChangeLinkedList,
+  TextMarker
+} from "codemirror";
 import {
   RenameBox,
   Delete,
@@ -46,6 +51,7 @@ import {
 } from "mdi-material-ui";
 import { renderPreview } from "vickymd/preview";
 import PushNotebookDialog from "./PushNotebookDialog";
+import EditImageDialog from "./EditImageDialog";
 import Noty from "noty";
 import { formatDistance } from "date-fns";
 import { getHeaderFromMarkdown } from "../utilities/note";
@@ -226,6 +232,15 @@ export default function Editor(props: Props) {
   const [decryptionPassword, setDecryptionPassword] = useState<string>("");
   const [isDecrypted, setIsDecrypted] = useState<boolean>(false);
   const [needsToPrint, setNeedsToPrint] = useState<boolean>(false);
+  const [editImageElement, setEditImageElement] = useState<HTMLImageElement>(
+    null
+  );
+  const [editImageTextMarker, setEditImageTextMarker] = useState<TextMarker>(
+    null
+  );
+  const [editImageDialogOpen, setEditImageDialogOpen] = useState<boolean>(
+    false
+  );
 
   const crossnoteContainer = CrossnoteContainer.useContainer();
 
@@ -481,6 +496,33 @@ export default function Editor(props: Props) {
     }
   }, [note, editor, decryptionPassword, isDecrypted]);
 
+  const openURL = useCallback(
+    (url: string = "") => {
+      if (!note || !editor || !url) {
+        return;
+      }
+      if (url.match(/https?:\/\//)) {
+        window.open(url, "_blank");
+      } else if (url.startsWith("/")) {
+        let filePath = path.relative(
+          note.notebook.dir,
+          path.resolve(note.notebook.dir, url.replace(/^\//, ""))
+        );
+        crossnoteContainer.openNoteAtPath(filePath);
+      } else {
+        let filePath = path.relative(
+          note.notebook.dir,
+          path.resolve(
+            path.dirname(path.resolve(note.notebook.dir, note.filePath)),
+            url
+          )
+        );
+        crossnoteContainer.openNoteAtPath(filePath);
+      }
+    },
+    [note, editor]
+  );
+
   useEffect(() => {
     setNewFilePath(note.filePath);
   }, [note.filePath]);
@@ -567,9 +609,31 @@ export default function Editor(props: Props) {
         }
       };
       editor.on("keyup", keyupHandler);
+
+      const linkIconClickedHandler = (args: any) => {
+        const url = args.element.getAttribute("data-url");
+        openURL(url || "");
+      };
+      editor.on("linkIconClicked", linkIconClickedHandler);
+
+      const imageClickedHandler = (args: any) => {
+        const marker: TextMarker = args.marker;
+        const imageElement: HTMLImageElement = args.element;
+        imageElement.setAttribute(
+          "data-marker-position",
+          JSON.stringify(marker.find())
+        );
+        setEditImageElement(imageElement);
+        setEditImageTextMarker(marker);
+        setEditImageDialogOpen(true);
+      };
+      editor.on("imageClicked", imageClickedHandler);
+
       return () => {
         editor.off("changes", changesHandler);
         editor.off("keyup", keyupHandler);
+        editor.off("linkIconClicked", linkIconClickedHandler);
+        editor.off("imageClicked", imageClickedHandler);
       };
     }
   }, [editor, note, decryptionPassword, isDecrypted]);
@@ -598,6 +662,17 @@ export default function Editor(props: Props) {
   useEffect(() => {
     if (editorMode === EditorMode.Preview && editor && previewElement) {
       if (isDecrypted) {
+        const handleLinksClickEvent = (preview: HTMLElement) => {
+          // Handle link click event
+          const links = preview.getElementsByTagName("A");
+          for (let i = 0; i < links.length; i++) {
+            const link = links[i] as HTMLAnchorElement;
+            link.onclick = event => {
+              event.preventDefault();
+              openURL(link.getAttribute("href"));
+            };
+          }
+        };
         renderPreview(previewElement, editor.getValue());
         if (
           previewElement.childElementCount &&
@@ -607,11 +682,16 @@ export default function Editor(props: Props) {
           previewElement.style.maxWidth = "100%";
           previewElement.style.height = "100%";
           previewElement.style.overflow = "hidden !important";
+          handleLinksClickEvent(
+            (previewElement.children[0] as HTMLIFrameElement).contentDocument
+              .body as HTMLElement
+          );
         } else {
           // normal
           // previewElement.style.maxWidth = `${EditorPreviewMaxWidth}px`;
           previewElement.style.height = "100%";
           previewElement.style.overflow = "hidden !important";
+          handleLinksClickEvent(previewElement);
         }
       } else {
         previewElement.innerHTML = "🔐 encrypted";
@@ -1251,6 +1331,13 @@ export default function Editor(props: Props) {
         onClose={() => setPushDialogOpen(false)}
         notebook={note.notebook}
       ></PushNotebookDialog>
+      <EditImageDialog
+        open={editImageDialogOpen}
+        onClose={() => setEditImageDialogOpen(false)}
+        editor={editor}
+        imageElement={editImageElement}
+        marker={editImageTextMarker}
+      ></EditImageDialog>
     </Box>
   );
 }

@@ -51,7 +51,7 @@ const useStyles = makeStyles((theme: Theme) =>
 function ImageWidget(props: WidgetArgs) {
   const classes = useStyles(props);
   const { t } = useTranslation();
-  const [link, setLink] = useState<string>("");
+  const [url, setURL] = useState<string>("");
   const [imageUploaderElement, setImageUploaderElement] = useState<
     HTMLInputElement
   >(null);
@@ -114,18 +114,18 @@ function ImageWidget(props: WidgetArgs) {
       {!uploadingImages && (
         <Box className={clsx(classes.section)}>
           <Typography variant={"subtitle1"} style={{ marginBottom: "8px" }}>
-            {t("general/Link")}
+            {"URL"}
           </Typography>
           <Input
             margin={"dense"}
             placeholder={t("widget/crossnote.image/image-url-placeholder")}
-            value={link}
+            value={url}
             onChange={event => {
-              setLink(event.target.value);
+              setURL(event.target.value);
             }}
             onKeyDown={event => {
               if (event.which === 13) {
-                props.replaceSelf(`![](${link})\n`);
+                props.replaceSelf(`![](${url})\n`);
               }
             }}
             fullWidth={true}

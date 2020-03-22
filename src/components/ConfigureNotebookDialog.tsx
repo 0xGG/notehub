@@ -94,7 +94,10 @@ export default function ConfigureNotebookDialog(props: Props) {
   }, [props.notebook]);
 
   return (
-    <Dialog open={props.open} onClose={props.onClose}>
+    <Dialog
+      open={props.open}
+      onClose={!clickDeleteCount ? null : props.onClose}
+    >
       <DialogTitle>Configure a notebook</DialogTitle>
       <DialogContent>
         <TextField
@@ -189,10 +192,13 @@ export default function ConfigureNotebookDialog(props: Props) {
           variant={"contained"}
           color={"primary"}
           onClick={updateNotebook}
+          disabled={!clickDeleteCount}
         >
           {"Save"}
         </Button>
-        <Button onClick={props.onClose}>{"Cancel"}</Button>
+        <Button onClick={props.onClose} disabled={!clickDeleteCount}>
+          {"Cancel"}
+        </Button>
       </DialogActions>
     </Dialog>
   );
