@@ -76,28 +76,9 @@ export default function EditImageDialog(props: Props) {
 
   useEffect(() => {
     if (imageElement && marker && editor) {
-      const pos = marker.find();
-      if (!pos) return;
-      const imageMD = editor.getRange(pos.from, pos.to);
-      const alt = imageMD.match(/^!\[(.*?)\]/)[1] || "";
-      setImageAlt(alt);
-      const bText = imageMD.match(/\]\((.*?)\)$/)[1] || "";
-      let firstSpace = bText.indexOf(" ");
-      if (firstSpace > 0) {
-        const arr = [
-          bText.slice(0, firstSpace),
-          bText.slice(firstSpace + 1, bText.length)
-        ];
-        setImageSrc((arr[0] || "").trim());
-        try {
-          const title = JSON.parse(arr[1] || '""');
-          setImageTitle(title);
-        } catch (error) {
-          setImageTitle("");
-        }
-      } else {
-        setImageSrc(bText.trim());
-      }
+      setImageSrc(imageElement.src || "");
+      setImageTitle(imageElement.title || "");
+      setImageAlt(imageElement.alt || "");
     }
   }, [imageElement, marker, editor]);
 
