@@ -21,7 +21,7 @@ export function handleTagClickInPreview(previewElement: HTMLElement) {
 export function printPreview(
   previewElement: HTMLElement,
   bannerElement?: HTMLElement,
-  timeout = 3000
+  timeout = 2000
 ) {
   return VickyMDPrintPreview(
     previewElement,

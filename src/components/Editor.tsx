@@ -53,6 +53,7 @@ import { printPreview } from "../utilities/preview";
 
 const VickyMD = require("vickymd");
 
+const previewZIndex = 99;
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     editorPanel: {
@@ -148,7 +149,7 @@ const useStyles = makeStyles((theme: Theme) =>
       border: "none",
       overflow: "auto !important",
       padding: theme.spacing(2),
-      zIndex: 99,
+      zIndex: previewZIndex,
       [theme.breakpoints.down("sm")]: {
         padding: theme.spacing(1)
       }
@@ -325,7 +326,7 @@ export default function Editor(props: Props) {
       crossnoteContainer.updateNoteMarkdown(
         note,
         editor.getValue(),
-        decryptionPassword,
+        note.config.encryption ? decryptionPassword : "",
         status => {
           setGitStatus(status);
         }
@@ -345,7 +346,7 @@ export default function Editor(props: Props) {
           crossnoteContainer.updateNoteMarkdown(
             note,
             editor.getValue(),
-            decryptionPassword,
+            note.config.encryption ? decryptionPassword : "",
             status => {
               setGitStatus(status);
             }
@@ -471,7 +472,7 @@ export default function Editor(props: Props) {
       crossnoteContainer.updateNoteMarkdown(
         note,
         editor.getValue(),
-        decryptionPassword,
+        note.config.encryption ? decryptionPassword : "",
         status => {
           setGitStatus(status);
         }
@@ -494,17 +495,10 @@ export default function Editor(props: Props) {
     if (!editor) return;
     if (note.config.encryption) {
       setIsDecrypted(false);
-      crossnoteContainer
-        .getNote(note.notebook, note.filePath)
-        .then(n => {
-          setDecryptionPassword("");
-          editor.setOption("readOnly", true);
-          editor.setValue(n.markdown);
-          setDecryptionDialogOpen(true);
-        })
-        .catch(error => {
-          console.log(error);
-        });
+      setDecryptionPassword("");
+      editor.setOption("readOnly", true);
+      editor.setValue("🔐 encrypted");
+      setDecryptionDialogOpen(true);
     } else {
       setIsDecrypted(true);
       setDecryptionPassword("");
@@ -550,10 +544,14 @@ export default function Editor(props: Props) {
           return;
         }
         const markdown = editor.getValue();
+
+        if (!note.config.encryption && markdown === note.markdown) {
+          return;
+        }
         crossnoteContainer.updateNoteMarkdown(
           note,
           markdown,
-          decryptionPassword,
+          note.config.encryption ? decryptionPassword : "",
           status => {
             setGitStatus(status);
             setTagNames(note.config.tags || []); // After resolve conflicts
@@ -576,37 +574,49 @@ export default function Editor(props: Props) {
   }, [editor, note, decryptionPassword, isDecrypted]);
 
   useEffect(() => {
-    if (!editor) return;
+    if (!editor || !note) return;
+    const updateEditorMarkdown = () => {
+      const readOnly = editor.getOption("readOnly");
+      editor.setOption("readOnly", true);
+      editor.setValue(isDecrypted ? note.markdown : "🔐 encrypted");
+      editor.setOption("readOnly", readOnly);
+    };
     if (editorMode === EditorMode.VickyMD) {
       VickyMD.switchToHyperMD(editor);
       editor.getWrapperElement().style.display = "block";
+      updateEditorMarkdown();
     } else if (editorMode === EditorMode.SourceCode) {
       VickyMD.switchToNormal(editor);
       editor.getWrapperElement().style.display = "block";
+      updateEditorMarkdown();
     } else {
       editor.getWrapperElement().style.display = "none";
     }
-  }, [editorMode, editor, note]);
+  }, [editorMode, editor, note, isDecrypted]);
 
   useEffect(() => {
     if (editorMode === EditorMode.Preview && editor && previewElement) {
-      renderPreview(previewElement, editor.getValue());
-      if (
-        previewElement.childElementCount &&
-        previewElement.children[0].tagName.toUpperCase() === "IFRAME"
-      ) {
-        // presentation
-        previewElement.style.maxWidth = "100%";
-        previewElement.style.height = "100%";
-        previewElement.style.overflow = "hidden !important";
+      if (isDecrypted) {
+        renderPreview(previewElement, editor.getValue());
+        if (
+          previewElement.childElementCount &&
+          previewElement.children[0].tagName.toUpperCase() === "IFRAME"
+        ) {
+          // presentation
+          previewElement.style.maxWidth = "100%";
+          previewElement.style.height = "100%";
+          previewElement.style.overflow = "hidden !important";
+        } else {
+          // normal
+          // previewElement.style.maxWidth = `${EditorPreviewMaxWidth}px`;
+          previewElement.style.height = "100%";
+          previewElement.style.overflow = "hidden !important";
+        }
       } else {
-        // normal
-        // previewElement.style.maxWidth = `${EditorPreviewMaxWidth}px`;
-        previewElement.style.height = "100%";
-        previewElement.style.overflow = "hidden !important";
+        previewElement.innerHTML = "🔐 encrypted";
       }
     }
-  }, [editorMode, editor, previewElement, note]);
+  }, [editorMode, editor, previewElement, note, isDecrypted]);
 
   useEffect(() => {
     if (!editor) return;
@@ -823,12 +833,16 @@ export default function Editor(props: Props) {
       return;
     }
     if (editorMode === EditorMode.Preview && previewElement) {
+      const printDone = () => {
+        setNeedsToPrint(false);
+        previewElement.style.zIndex = `${previewZIndex}`;
+      };
       printPreview(previewElement)
         .then(() => {
-          setNeedsToPrint(false);
+          printDone();
         })
         .catch(() => {
-          setNeedsToPrint(false);
+          printDone();
         });
     } else {
       setEditorMode(EditorMode.Preview);
