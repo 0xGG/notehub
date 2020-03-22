@@ -77,7 +77,7 @@
     "unstated-next": "^1.1.0",
     "urql": "^1.9.4",
     "uuid": "^7.0.2",
-    "vickymd": "0.1.4"
+    "vickymd": "0.1.5"
   },
   "scripts": {
     "start": "react-scripts start",
