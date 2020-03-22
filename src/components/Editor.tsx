@@ -51,6 +51,7 @@ import {
 } from "mdi-material-ui";
 import { renderPreview } from "vickymd/preview";
 import PushNotebookDialog from "./PushNotebookDialog";
+import EditImageDialog from "./EditImageDialog";
 import Noty from "noty";
 import { formatDistance } from "date-fns";
 import { getHeaderFromMarkdown } from "../utilities/note";
@@ -231,6 +232,15 @@ export default function Editor(props: Props) {
   const [decryptionPassword, setDecryptionPassword] = useState<string>("");
   const [isDecrypted, setIsDecrypted] = useState<boolean>(false);
   const [needsToPrint, setNeedsToPrint] = useState<boolean>(false);
+  const [editImageElement, setEditImageElement] = useState<HTMLImageElement>(
+    null
+  );
+  const [editImageTextMarker, setEditImageTextMarker] = useState<TextMarker>(
+    null
+  );
+  const [editImageDialogOpen, setEditImageDialogOpen] = useState<boolean>(
+    false
+  );
 
   const crossnoteContainer = CrossnoteContainer.useContainer();
 
@@ -605,10 +615,25 @@ export default function Editor(props: Props) {
         openURL(url || "");
       };
       editor.on("linkIconClicked", linkIconClickedHandler);
+
+      const imageClickedHandler = (args: any) => {
+        const marker: TextMarker = args.marker;
+        const imageElement: HTMLImageElement = args.element;
+        imageElement.setAttribute(
+          "data-marker-position",
+          JSON.stringify(marker.find())
+        );
+        setEditImageElement(imageElement);
+        setEditImageTextMarker(marker);
+        setEditImageDialogOpen(true);
+      };
+      editor.on("imageClicked", imageClickedHandler);
+
       return () => {
         editor.off("changes", changesHandler);
         editor.off("keyup", keyupHandler);
         editor.off("linkIconClicked", linkIconClickedHandler);
+        editor.off("imageClicked", imageClickedHandler);
       };
     }
   }, [editor, note, decryptionPassword, isDecrypted]);
@@ -1306,6 +1331,13 @@ export default function Editor(props: Props) {
         onClose={() => setPushDialogOpen(false)}
         notebook={note.notebook}
       ></PushNotebookDialog>
+      <EditImageDialog
+        open={editImageDialogOpen}
+        onClose={() => setEditImageDialogOpen(false)}
+        editor={editor}
+        imageElement={editImageElement}
+        marker={editImageTextMarker}
+      ></EditImageDialog>
     </Box>
   );
 }

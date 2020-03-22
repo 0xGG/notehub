@@ -44,6 +44,10 @@ body {
   z-index: 2000 !important;
 }
 
+.hmd-image {
+  cursor: pointer;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
