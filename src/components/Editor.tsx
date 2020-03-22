@@ -52,6 +52,7 @@ import { getHeaderFromMarkdown } from "../utilities/note";
 import { printPreview } from "../utilities/preview";
 
 const VickyMD = require("vickymd");
+const is = require("is_js");
 
 const previewZIndex = 99;
 const useStyles = makeStyles((theme: Theme) =>
@@ -979,14 +980,16 @@ export default function Editor(props: Props) {
                 <Delete></Delete>
               </Button>
             </Tooltip>
-            <Tooltip title={"Print"}>
-              <Button
-                className={clsx(classes.controlBtn)}
-                onClick={() => setNeedsToPrint(true)}
-              >
-                <Printer></Printer>
-              </Button>
-            </Tooltip>
+            {is.desktop() && (
+              <Tooltip title={"Print"}>
+                <Button
+                  className={clsx(classes.controlBtn)}
+                  onClick={() => setNeedsToPrint(true)}
+                >
+                  <Printer></Printer>
+                </Button>
+              </Tooltip>
+            )}
           </ButtonGroup>
           <ButtonGroup style={{ marginLeft: "8px" }}>
             <Tooltip title={"Fullscreen"}>
