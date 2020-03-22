@@ -20,10 +20,10 @@ import React, { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { PlusCircle } from "mdi-material-ui";
 import { CrossnoteContainer } from "../containers/crossnote";
-import Notes from "../components/Notes";
 import Editor from "../components/Editor";
 import AddNotebookDialog from "../components/AddNotebookDialog";
 import NotebookTreeView from "../components/NotebookTreeView";
+import NotesPanel from "../components/NotesPanel";
 
 const drawerWidth = 200;
 const notesPanelWidth = 350;
@@ -200,8 +200,8 @@ export function Home(props: Props) {
   );
 
   const notesPanel = (
-    <Paper className={clsx(classes.notesPanel)}>
-      <Notes toggleDrawer={toggleDrawer}></Notes>
+    <Paper className={clsx(classes.notesPanel)} id={"notes-panel"}>
+      <NotesPanel toggleDrawer={toggleDrawer}></NotesPanel>
     </Paper>
   );
 
@@ -240,7 +240,7 @@ export function Home(props: Props) {
       <Box className={clsx(classes.mainPanel)} id="main-panel">
         {notesPanel}
         <Paper
-          className={clsx(classes.editorPanel)}
+          className={clsx(classes.editorPanel, "editor-panel")}
           style={{
             display:
               crossnoteContainer.displayMobileEditor &&

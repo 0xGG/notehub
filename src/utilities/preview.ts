@@ -28,10 +28,9 @@ export function printPreview(
     bannerElement,
     ["#main-panel", "#editor-main-panel", "#editor-card"],
     `
+  #notes-panel,
+  .editor-bottom-panel,
   .drawer,
-  .app-bar,
-  .note-tags,
-  .editor-toolbar,
   .CodeMirror,
   .editor-textarea,
   .control-panel-wrapper {
@@ -42,8 +41,10 @@ export function printPreview(
     height: 100%;
     box-shadow: none;
   }
-  .editor-container {
+  .editor-panel {
     background-color: #fff;
+    box-shadow: none;
+    border: none;
   }
 `,
     timeout

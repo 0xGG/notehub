@@ -35,22 +35,26 @@ import {
   Fullscreen,
   FullscreenExit,
   ChevronLeft,
-  Tag,
   Close,
   Pin,
   PinOutline,
   LockOpenOutline,
   Lock,
-  LockOpen
+  LockOpen,
+  TagOutline,
+  Printer
 } from "mdi-material-ui";
 import { renderPreview } from "vickymd/preview";
 import PushNotebookDialog from "./PushNotebookDialog";
 import Noty from "noty";
 import { formatDistance } from "date-fns";
 import { getHeaderFromMarkdown } from "../utilities/note";
+import { printPreview } from "../utilities/preview";
 
 const VickyMD = require("vickymd");
+const is = require("is_js");
 
+const previewZIndex = 99;
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     editorPanel: {
@@ -130,7 +134,8 @@ const useStyles = makeStyles((theme: Theme) =>
       left: "0",
       top: "0",
       zIndex: 2000,
-      overflow: "auto"
+      overflow: "auto",
+      padding: "0"
     },
     editor: {
       width: "100%",
@@ -145,7 +150,7 @@ const useStyles = makeStyles((theme: Theme) =>
       border: "none",
       overflow: "auto !important",
       padding: theme.spacing(2),
-      zIndex: 99,
+      zIndex: previewZIndex,
       [theme.breakpoints.down("sm")]: {
         padding: theme.spacing(1)
       }
@@ -220,6 +225,7 @@ export default function Editor(props: Props) {
   );
   const [decryptionPassword, setDecryptionPassword] = useState<string>("");
   const [isDecrypted, setIsDecrypted] = useState<boolean>(false);
+  const [needsToPrint, setNeedsToPrint] = useState<boolean>(false);
 
   const crossnoteContainer = CrossnoteContainer.useContainer();
 
@@ -321,7 +327,7 @@ export default function Editor(props: Props) {
       crossnoteContainer.updateNoteMarkdown(
         note,
         editor.getValue(),
-        decryptionPassword,
+        note.config.encryption ? decryptionPassword : "",
         status => {
           setGitStatus(status);
         }
@@ -341,7 +347,7 @@ export default function Editor(props: Props) {
           crossnoteContainer.updateNoteMarkdown(
             note,
             editor.getValue(),
-            decryptionPassword,
+            note.config.encryption ? decryptionPassword : "",
             status => {
               setGitStatus(status);
             }
@@ -467,7 +473,7 @@ export default function Editor(props: Props) {
       crossnoteContainer.updateNoteMarkdown(
         note,
         editor.getValue(),
-        decryptionPassword,
+        note.config.encryption ? decryptionPassword : "",
         status => {
           setGitStatus(status);
         }
@@ -490,17 +496,10 @@ export default function Editor(props: Props) {
     if (!editor) return;
     if (note.config.encryption) {
       setIsDecrypted(false);
-      crossnoteContainer
-        .getNote(note.notebook, note.filePath)
-        .then(n => {
-          setDecryptionPassword("");
-          editor.setOption("readOnly", true);
-          editor.setValue(n.markdown);
-          setDecryptionDialogOpen(true);
-        })
-        .catch(error => {
-          console.log(error);
-        });
+      setDecryptionPassword("");
+      editor.setOption("readOnly", true);
+      editor.setValue("🔐 encrypted");
+      setDecryptionDialogOpen(true);
     } else {
       setIsDecrypted(true);
       setDecryptionPassword("");
@@ -546,10 +545,14 @@ export default function Editor(props: Props) {
           return;
         }
         const markdown = editor.getValue();
+
+        if (!note.config.encryption && markdown === note.markdown) {
+          return;
+        }
         crossnoteContainer.updateNoteMarkdown(
           note,
           markdown,
-          decryptionPassword,
+          note.config.encryption ? decryptionPassword : "",
           status => {
             setGitStatus(status);
             setTagNames(note.config.tags || []); // After resolve conflicts
@@ -572,37 +575,49 @@ export default function Editor(props: Props) {
   }, [editor, note, decryptionPassword, isDecrypted]);
 
   useEffect(() => {
-    if (!editor) return;
+    if (!editor || !note) return;
+    const updateEditorMarkdown = () => {
+      const readOnly = editor.getOption("readOnly");
+      editor.setOption("readOnly", true);
+      editor.setValue(isDecrypted ? note.markdown : "🔐 encrypted");
+      editor.setOption("readOnly", readOnly);
+    };
     if (editorMode === EditorMode.VickyMD) {
       VickyMD.switchToHyperMD(editor);
       editor.getWrapperElement().style.display = "block";
+      updateEditorMarkdown();
     } else if (editorMode === EditorMode.SourceCode) {
       VickyMD.switchToNormal(editor);
       editor.getWrapperElement().style.display = "block";
+      updateEditorMarkdown();
     } else {
       editor.getWrapperElement().style.display = "none";
     }
-  }, [editorMode, editor, note]);
+  }, [editorMode, editor, note, isDecrypted]);
 
   useEffect(() => {
     if (editorMode === EditorMode.Preview && editor && previewElement) {
-      renderPreview(previewElement, editor.getValue());
-      if (
-        previewElement.childElementCount &&
-        previewElement.children[0].tagName.toUpperCase() === "IFRAME"
-      ) {
-        // presentation
-        previewElement.style.maxWidth = "100%";
-        previewElement.style.height = "100%";
-        previewElement.style.overflow = "hidden !important";
+      if (isDecrypted) {
+        renderPreview(previewElement, editor.getValue());
+        if (
+          previewElement.childElementCount &&
+          previewElement.children[0].tagName.toUpperCase() === "IFRAME"
+        ) {
+          // presentation
+          previewElement.style.maxWidth = "100%";
+          previewElement.style.height = "100%";
+          previewElement.style.overflow = "hidden !important";
+        } else {
+          // normal
+          // previewElement.style.maxWidth = `${EditorPreviewMaxWidth}px`;
+          previewElement.style.height = "100%";
+          previewElement.style.overflow = "hidden !important";
+        }
       } else {
-        // normal
-        // previewElement.style.maxWidth = `${EditorPreviewMaxWidth}px`;
-        previewElement.style.height = "auto";
-        previewElement.style.overflow = "hidden !important";
+        previewElement.innerHTML = "🔐 encrypted";
       }
     }
-  }, [editorMode, editor, previewElement, note]);
+  }, [editorMode, editor, previewElement, note, isDecrypted]);
 
   useEffect(() => {
     if (!editor) return;
@@ -813,8 +828,30 @@ export default function Editor(props: Props) {
     };
   }, [editor, note /*t*/]);
 
+  // Print preview
+  useEffect(() => {
+    if (!note || !editor || !needsToPrint) {
+      return;
+    }
+    if (editorMode === EditorMode.Preview && previewElement) {
+      const printDone = () => {
+        setNeedsToPrint(false);
+        previewElement.style.zIndex = `${previewZIndex}`;
+      };
+      printPreview(previewElement)
+        .then(() => {
+          printDone();
+        })
+        .catch(() => {
+          printDone();
+        });
+    } else {
+      setEditorMode(EditorMode.Preview);
+    }
+  }, [needsToPrint, editorMode, note, editor, previewElement]);
+
   return (
-    <Box className={clsx(classes.editorPanel)}>
+    <Box className={clsx(classes.editorPanel, "editor-panel")}>
       <Box className={clsx(classes.topPanel)}>
         <Box className={clsx(classes.row)}>
           <ButtonGroup className={clsx(classes.backBtn)}>
@@ -879,27 +916,29 @@ export default function Editor(props: Props) {
             </Tooltip>
           </ButtonGroup>
           <ButtonGroup style={{ marginLeft: "8px" }}>
-            <Tooltip title={"Tags"}>
-              <Button
-                className={clsx(classes.controlBtn)}
-                disabled={!isDecrypted}
-                onClick={event => setTagsMenuAnchorEl(event.currentTarget)}
-              >
-                <Tag></Tag>
-              </Button>
-            </Tooltip>
-            <Tooltip title={"Pin"}>
-              <Button
-                className={clsx(
-                  classes.controlBtn,
-                  note.config.pinned && classes.controlBtnSelectedSecondary
-                )}
-                disabled={!isDecrypted}
-                onClick={togglePin}
-              >
-                {note.config.pinned ? <Pin></Pin> : <PinOutline></PinOutline>}
-              </Button>
-            </Tooltip>
+            {isDecrypted && (
+              <Tooltip title={"Tags"}>
+                <Button
+                  className={clsx(classes.controlBtn)}
+                  onClick={event => setTagsMenuAnchorEl(event.currentTarget)}
+                >
+                  <TagOutline></TagOutline>
+                </Button>
+              </Tooltip>
+            )}
+            {isDecrypted && (
+              <Tooltip title={"Pin"}>
+                <Button
+                  className={clsx(
+                    classes.controlBtn,
+                    note.config.pinned && classes.controlBtnSelectedSecondary
+                  )}
+                  onClick={togglePin}
+                >
+                  {note.config.pinned ? <Pin></Pin> : <PinOutline></PinOutline>}
+                </Button>
+              </Tooltip>
+            )}
             <Tooltip title={"Encryption"}>
               <Button
                 className={clsx(
@@ -913,16 +952,6 @@ export default function Editor(props: Props) {
                 ) : (
                   <LockOpenOutline></LockOpenOutline>
                 )}
-              </Button>
-            </Tooltip>
-          </ButtonGroup>
-          <ButtonGroup style={{ marginLeft: "8px" }}>
-            <Tooltip title={"Fullscreen"}>
-              <Button
-                className={clsx(classes.controlBtn)}
-                onClick={() => setFullScreenMode(true)}
-              >
-                <Fullscreen></Fullscreen>
               </Button>
             </Tooltip>
           </ButtonGroup>
@@ -949,6 +978,26 @@ export default function Editor(props: Props) {
                 onClick={() => setDeleteDialogOpen(true)}
               >
                 <Delete></Delete>
+              </Button>
+            </Tooltip>
+            {is.desktop() && (
+              <Tooltip title={"Print"}>
+                <Button
+                  className={clsx(classes.controlBtn)}
+                  onClick={() => setNeedsToPrint(true)}
+                >
+                  <Printer></Printer>
+                </Button>
+              </Tooltip>
+            )}
+          </ButtonGroup>
+          <ButtonGroup style={{ marginLeft: "8px" }}>
+            <Tooltip title={"Fullscreen"}>
+              <Button
+                className={clsx(classes.controlBtn)}
+                onClick={() => setFullScreenMode(true)}
+              >
+                <Fullscreen></Fullscreen>
               </Button>
             </Tooltip>
           </ButtonGroup>
@@ -1081,7 +1130,7 @@ export default function Editor(props: Props) {
           </IconButton>
         )}
       </Box>
-      <Box className={clsx(classes.bottomPanel)}>
+      <Box className={clsx(classes.bottomPanel, "editor-bottom-panel")}>
         <Box className={clsx(classes.row)}>
           <Typography
             variant={"caption"}
