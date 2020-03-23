@@ -248,9 +248,7 @@ export function Home(props: Props) {
               "block"
           }}
         >
-          {crossnoteContainer.selectedNote && (
-            <Editor note={crossnoteContainer.selectedNote}></Editor>
-          )}
+          <Editor note={crossnoteContainer.selectedNote}></Editor>
         </Paper>
       </Box>
       <AddNotebookDialog

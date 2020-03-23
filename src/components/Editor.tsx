@@ -212,7 +212,9 @@ export default function Editor(props: Props) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [filePathDialogOpen, setFilePathDialogOpen] = useState<boolean>(false);
   const [pushDialogOpen, setPushDialogOpen] = useState<boolean>(false);
-  const [newFilePath, setNewFilePath] = useState<string>(note.filePath);
+  const [newFilePath, setNewFilePath] = useState<string>(
+    (note && note.filePath) || ""
+  );
   const [editorMode, setEditorMode] = useState<EditorMode>(EditorMode.VickyMD);
   const [previewElement, setPreviewElement] = useState<HTMLElement>(null);
   const [gitStatus, setGitStatus] = useState<string>("");
@@ -247,6 +249,7 @@ export default function Editor(props: Props) {
   const { t } = useTranslation();
 
   const closeFilePathDialog = useCallback(() => {
+    if (!note) return;
     setFilePathDialogOpen(false);
     setNewFilePath(note.filePath);
   }, [note]);
@@ -263,6 +266,7 @@ export default function Editor(props: Props) {
 
   const changeFilePath = useCallback(
     (newFilePath: string) => {
+      if (!note) return;
       (async () => {
         newFilePath = newFilePath.replace(/^\/+/, "");
         if (!newFilePath.endsWith(".md")) {
@@ -286,6 +290,7 @@ export default function Editor(props: Props) {
       theme: "relax",
       timeout: 2000
     }).show();
+    if (!note) return;
     crossnoteContainer
       .pullNotebook({
         notebook: note.notebook,
@@ -321,6 +326,7 @@ export default function Editor(props: Props) {
   }, [note]);
 
   const checkoutNote = useCallback(() => {
+    if (!note) return;
     crossnoteContainer.checkoutNote(note);
   }, [note]);
 
@@ -524,18 +530,32 @@ export default function Editor(props: Props) {
   );
 
   useEffect(() => {
-    setNewFilePath(note.filePath);
-  }, [note.filePath]);
+    if (!note) {
+      return () => {
+        setEditor(null);
+        setTextAreaElement(null);
+        setPreviewElement(null);
+      };
+    }
+  }, [note]);
 
   useEffect(() => {
-    crossnoteContainer.crossnote.getStatus(note).then(status => {
-      setGitStatus(status);
-    });
+    if (note) {
+      setNewFilePath(note.filePath);
+    }
+  }, [note]);
+
+  useEffect(() => {
+    if (note) {
+      crossnoteContainer.crossnote.getStatus(note).then(status => {
+        setGitStatus(status);
+      });
+    }
   }, [note, crossnoteContainer.crossnote]);
 
   // Decryption
   useEffect(() => {
-    if (!editor) return;
+    if (!editor || !note) return;
     if (note.config.encryption) {
       setIsDecrypted(false);
       setDecryptionPassword("");
@@ -551,7 +571,7 @@ export default function Editor(props: Props) {
   }, [editor, note]);
 
   useEffect(() => {
-    if (textAreaElement && !editor) {
+    if (textAreaElement && !editor && note) {
       // console.log("textarea element mounted");
       const editor: CodeMirrorEditor = VickyMD.fromTextArea(textAreaElement, {
         mode: {
@@ -562,9 +582,7 @@ export default function Editor(props: Props) {
       });
       editor.setOption("lineNumbers", false);
       editor.setOption("foldGutter", false);
-      // editor.setOption("readOnly", false);
       editor.setValue(note.markdown || "");
-      // crossnoteContainer.setEditor(editor);
       editor.on("cursorActivity", instance => {
         const cursor = instance.getCursor();
         if (cursor) {
@@ -659,8 +677,9 @@ export default function Editor(props: Props) {
     }
   }, [editorMode, editor, note, isDecrypted]);
 
+  // Render Preview
   useEffect(() => {
-    if (editorMode === EditorMode.Preview && editor && previewElement) {
+    if (editorMode === EditorMode.Preview && editor && note && previewElement) {
       if (isDecrypted) {
         const handleLinksClickEvent = (preview: HTMLElement) => {
           // Handle link click event
@@ -699,8 +718,9 @@ export default function Editor(props: Props) {
     }
   }, [editorMode, editor, previewElement, note, isDecrypted]);
 
+  // Command
   useEffect(() => {
-    if (!editor) return;
+    if (!editor || !note) return;
     const onChangeHandler = (
       instance: CodeMirrorEditor,
       changeObject: EditorChangeLinkedList
@@ -929,6 +949,23 @@ export default function Editor(props: Props) {
       setEditorMode(EditorMode.Preview);
     }
   }, [needsToPrint, editorMode, note, editor, previewElement]);
+
+  if (!note) {
+    return (
+      <Box className={clsx(classes.editorPanel, "editor-panel")}>
+        <Button
+          style={{
+            margin: "0 auto",
+            top: "50%",
+            position: "relative"
+          }}
+          onClick={() => crossnoteContainer.createNewNote()}
+        >
+          <Typography>{"📝 Create a note"}</Typography>
+        </Button>
+      </Box>
+    );
+  }
 
   return (
     <Box className={clsx(classes.editorPanel, "editor-panel")}>

@@ -41,7 +41,7 @@ export function printPreview(
     height: 100%;
     box-shadow: none;
   }
-  .editor-panel {
+  .editor-panel, #main-panel {
     background-color: #fff;
     box-shadow: none;
     border: none;
