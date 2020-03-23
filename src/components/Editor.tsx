@@ -659,20 +659,14 @@ export default function Editor(props: Props) {
 
   useEffect(() => {
     if (!editor || !note) return;
-    const updateEditorMarkdown = () => {
-      const readOnly = editor.getOption("readOnly");
-      editor.setOption("readOnly", true);
-      editor.setValue(isDecrypted ? note.markdown : "🔐 encrypted");
-      editor.setOption("readOnly", readOnly);
-    };
     if (editorMode === EditorMode.VickyMD) {
       VickyMD.switchToHyperMD(editor);
       editor.getWrapperElement().style.display = "block";
-      updateEditorMarkdown();
+      editor.refresh();
     } else if (editorMode === EditorMode.SourceCode) {
       VickyMD.switchToNormal(editor);
       editor.getWrapperElement().style.display = "block";
-      updateEditorMarkdown();
+      editor.refresh();
     } else {
       editor.getWrapperElement().style.display = "none";
     }

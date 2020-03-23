@@ -122,7 +122,7 @@ function useCrossnoteContainer(initialState: InitialState) {
       setNotebookNotes(notes => {
         const newNotes = notes.filter(n => n.filePath !== note.filePath);
         if (newNotes.length !== notes.length) {
-          setSelectedNote(newNotes[0]);
+          setSelectedNote(null);
         }
 
         crossnote
@@ -572,14 +572,22 @@ function useCrossnoteContainer(initialState: InitialState) {
       } else if (orderBy === OrderBy.Title) {
         if (orderDirection === OrderDirection.DESC) {
           notes.sort((a, b) =>
-            getHeaderFromMarkdown(b.markdown).localeCompare(
-              getHeaderFromMarkdown(a.markdown)
+            (
+              (b.config.encryption && b.config.encryption.title) ||
+              getHeaderFromMarkdown(b.markdown)
+            ).localeCompare(
+              (a.config.encryption && a.config.encryption.title) ||
+                getHeaderFromMarkdown(a.markdown)
             )
           );
         } else {
           notes.sort((a, b) =>
-            getHeaderFromMarkdown(a.markdown).localeCompare(
-              getHeaderFromMarkdown(b.markdown)
+            (
+              (a.config.encryption && a.config.encryption.title) ||
+              getHeaderFromMarkdown(a.markdown)
+            ).localeCompare(
+              (b.config.encryption && b.config.encryption.title) ||
+                getHeaderFromMarkdown(b.markdown)
             )
           );
         }
