@@ -8,7 +8,9 @@ import {
 import clsx from "clsx";
 import {
   CrossnoteContainer,
-  SelectedSectionType
+  SelectedSectionType,
+  OrderBy,
+  OrderDirection
 } from "../containers/crossnote";
 import {
   Box,
@@ -17,13 +19,25 @@ import {
   IconButton,
   Typography,
   Hidden,
-  CircularProgress
+  CircularProgress,
+  Popover,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Divider,
+  ListItemSecondaryAction,
+  ListItemAvatar
 } from "@material-ui/core";
 import {
   Magnify,
   FileEditOutline,
   Settings,
-  Menu as MenuIcon
+  Menu as MenuIcon,
+  SortVariant,
+  Check,
+  SortDescending,
+  SortAscending
 } from "mdi-material-ui";
 import { useTranslation } from "react-i18next";
 import ConfigureNotebookDialog from "./ConfigureNotebookDialog";
@@ -96,6 +110,12 @@ const useStyles = makeStyles((theme: Theme) =>
       top: "30%",
       left: "50%",
       transform: "translateX(-50%)"
+    },
+    sortSelected: {
+      color: theme.palette.primary.main,
+      "& svg": {
+        color: theme.palette.primary.main
+      }
     }
   })
 );
@@ -107,6 +127,7 @@ interface Props {
 export default function NotesPanel(props: Props) {
   const classes = useStyles(props);
   const { t } = useTranslation();
+  const [sortMenuAnchorEl, setSortMenuAnchorEl] = useState<HTMLElement>(null);
   const crossnoteContainer = CrossnoteContainer.useContainer();
 
   // Search
@@ -248,14 +269,95 @@ export default function NotesPanel(props: Props) {
             )
           )}
 
-          {crossnoteContainer.selectedSection.type ===
-            SelectedSectionType.Notes && (
+          <Box>
+            {crossnoteContainer.selectedSection.type ===
+              SelectedSectionType.Notes && (
+              <IconButton
+                onClick={() => setNotebookConfigurationDialogOpen(true)}
+              >
+                <Settings></Settings>
+              </IconButton>
+            )}
             <IconButton
-              onClick={() => setNotebookConfigurationDialogOpen(true)}
+              onClick={event => setSortMenuAnchorEl(event.currentTarget)}
             >
-              <Settings></Settings>
+              <SortVariant></SortVariant>
             </IconButton>
-          )}
+            <Popover
+              anchorEl={sortMenuAnchorEl}
+              keepMounted
+              open={Boolean(sortMenuAnchorEl)}
+              onClose={() => setSortMenuAnchorEl(null)}
+            >
+              <List>
+                <ListItem
+                  button
+                  onClick={() =>
+                    crossnoteContainer.setOrderBy(OrderBy.ModifiedAt)
+                  }
+                  className={clsx(
+                    crossnoteContainer.orderBy === OrderBy.ModifiedAt &&
+                      classes.sortSelected
+                  )}
+                >
+                  <ListItemText primary={"Date modified"}></ListItemText>
+                </ListItem>
+                <ListItem
+                  button
+                  onClick={() =>
+                    crossnoteContainer.setOrderBy(OrderBy.CreatedAt)
+                  }
+                  className={clsx(
+                    crossnoteContainer.orderBy === OrderBy.CreatedAt &&
+                      classes.sortSelected
+                  )}
+                >
+                  <ListItemText primary={"Date created"}></ListItemText>
+                </ListItem>
+                <ListItem
+                  button
+                  onClick={() => crossnoteContainer.setOrderBy(OrderBy.Title)}
+                  className={clsx(
+                    crossnoteContainer.orderBy === OrderBy.Title &&
+                      classes.sortSelected
+                  )}
+                >
+                  <ListItemText primary={"Title"}></ListItemText>
+                </ListItem>
+                <Divider></Divider>
+                <ListItem
+                  button
+                  onClick={() =>
+                    crossnoteContainer.setOrderDirection(OrderDirection.DESC)
+                  }
+                  className={clsx(
+                    crossnoteContainer.orderDirection === OrderDirection.DESC &&
+                      classes.sortSelected
+                  )}
+                >
+                  <ListItemText primary={"Desc"}></ListItemText>
+                  <ListItemIcon>
+                    <SortDescending></SortDescending>
+                  </ListItemIcon>
+                </ListItem>
+                <ListItem
+                  button
+                  onClick={() =>
+                    crossnoteContainer.setOrderDirection(OrderDirection.ASC)
+                  }
+                  className={clsx(
+                    crossnoteContainer.orderDirection === OrderDirection.ASC &&
+                      classes.sortSelected
+                  )}
+                >
+                  <ListItemText primary={"Asc"}></ListItemText>
+                  <ListItemIcon>
+                    <SortAscending></SortAscending>
+                  </ListItemIcon>
+                </ListItem>
+              </List>
+            </Popover>
+          </Box>
         </Box>
       </Card>
 
