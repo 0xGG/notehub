@@ -8,7 +8,6 @@ import diff3Merge from "diff3";
 import { randomID } from "../utilities/utils";
 import AES from "crypto-js/aes";
 import { Stats } from "fs";
-import matter from "gray-matter";
 import { getHeaderFromMarkdown } from "../utilities/note";
 
 export interface Notebook {
@@ -85,6 +84,11 @@ interface ListNotesArgs {
   dir: string;
   includeSubdirectories?: Boolean;
 }
+interface MatterOutput {
+  data: any;
+  content: string;
+}
+
 export interface PushNotebookArgs {
   notebook: Notebook;
   authorName?: string;
@@ -843,6 +847,28 @@ export default class Crossnote {
     });
   }
 
+  private matter(markdown: string): MatterOutput {
+    let endFrontMatterOffset = 0;
+    let frontMatter = {};
+    if (
+      markdown.startsWith("---") &&
+      /* tslint:disable-next-line:no-conditional-assignment */
+      (endFrontMatterOffset = markdown.indexOf("\n---")) > 0
+    ) {
+      const frontMatterString = markdown.slice(3, endFrontMatterOffset);
+      try {
+        frontMatter = (window as any)["YAML"].parse(frontMatterString);
+      } catch (error) {}
+      markdown = markdown
+        .slice(endFrontMatterOffset + 4)
+        .replace(/^[ \t]*\n/, "");
+    }
+    return {
+      data: frontMatter,
+      content: markdown
+    };
+  }
+
   private matterStringify(markdown: string, frontMatter: any) {
     frontMatter = frontMatter || {};
     const yamlStr = (window as any)["YAML"].stringify(frontMatter).trim();
@@ -882,7 +908,7 @@ ${markdown}`;
       };
 
       try {
-        const data = matter(markdown);
+        const data = this.matter(markdown);
         noteConfig = Object.assign(noteConfig, data.data["note"] || {});
         const frontMatter: any = Object.assign({}, data.data);
         delete frontMatter["note"];
@@ -955,8 +981,9 @@ ${markdown}`;
     password?: string
   ): Promise<NoteConfig> {
     noteConfig.modifiedAt = new Date();
+
     try {
-      const data = matter(markdown);
+      const data = this.matter(markdown);
       if (data.data["note"] && data.data["note"] instanceof Object) {
         noteConfig = Object.assign({}, noteConfig, data.data["note"] || {});
       }
@@ -1081,6 +1108,13 @@ ${markdown}`;
     }
 
     return rootTagNode;
+  }
+
+  public async hasSummaryMD(notebook: Notebook): Promise<boolean> {
+    if (!notebook || !notebook.dir) {
+      return false;
+    }
+    return await this.exists(path.resolve(notebook.dir, "SUMMARY.md"));
   }
 
   private getDefaultNotebookNameFromGitURL(gitURL: string) {

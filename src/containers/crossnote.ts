@@ -25,7 +25,8 @@ export enum SelectedSectionType {
   Directory = "Directory",
   Tag = "Tag",
   Conflicted = "Conflicted",
-  Encrypted = "Encrypted"
+  Encrypted = "Encrypted",
+  Wiki = "Wiki"
 }
 
 export interface SelectedSection {
@@ -81,7 +82,9 @@ function useCrossnoteContainer(initialState: InitialState) {
   const [needsToRefreshNotes, setNeedsToRefreshNotes] = useState<boolean>(
     false
   );
+  const [wikiTOCElement, setWikiTOCElement] = useState<HTMLElement>(null);
   const [isLoadingNotebook, setIsLoadingNotebook] = useState<boolean>(false);
+  const [hasSummaryMD, setHasSummaryMD] = useState<boolean>(false);
   const [orderBy, setOrderBy] = useState<OrderBy>(OrderBy.ModifiedAt);
   const [orderDirection, setOrderDirection] = useState<OrderDirection>(
     OrderDirection.DESC
@@ -117,12 +120,12 @@ function useCrossnoteContainer(initialState: InitialState) {
   );
 
   const deleteNote = useCallback(
-    (note: Note) => {
-      crossnote.deleteNote(selectedNotebook, note.filePath);
+    async (note: Note) => {
+      await crossnote.deleteNote(selectedNotebook, note.filePath);
       setNotebookNotes(notes => {
         const newNotes = notes.filter(n => n.filePath !== note.filePath);
         if (newNotes.length !== notes.length) {
-          setSelectedNote(newNotes[0]);
+          setSelectedNote(null);
         }
 
         crossnote
@@ -130,6 +133,10 @@ function useCrossnoteContainer(initialState: InitialState) {
           .then(directories => {
             setNotebookDirectories(directories);
           });
+
+        crossnote
+          .hasSummaryMD(selectedNotebook)
+          .then(exists => setHasSummaryMD(exists));
 
         setNotebookTagNode(crossnote.getNotebookTagNodeFromNotes(newNotes));
         return newNotes;
@@ -161,6 +168,7 @@ function useCrossnoteContainer(initialState: InitialState) {
           setNotebookDirectories(
             await crossnote.getNotebookDirectoriesFromNotes(newNotes)
           );
+          setHasSummaryMD(await crossnote.hasSummaryMD(selectedNotebook));
           setNotebookTagNode(crossnote.getNotebookTagNodeFromNotes(newNotes));
         } catch (error) {
           new Noty({
@@ -316,6 +324,7 @@ function useCrossnoteContainer(initialState: InitialState) {
       }
       setIsPullingNotebook(true);
       try {
+        // NOTE: Code here might have bug
         await crossnote.pullNotebook(args);
         setIsPullingNotebook(false);
         const notes = await crossnote.listNotes({
@@ -327,6 +336,7 @@ function useCrossnoteContainer(initialState: InitialState) {
         setNotebookDirectories(
           await crossnote.getNotebookDirectoriesFromNotes(notes)
         );
+        setHasSummaryMD(await crossnote.hasSummaryMD(args.notebook));
         setNotebookTagNode(crossnote.getNotebookTagNodeFromNotes(notes));
 
         const newNote = notes.find(n => n.filePath === selectedNote.filePath);
@@ -378,6 +388,9 @@ function useCrossnoteContainer(initialState: InitialState) {
             .then(directories => {
               setNotebookDirectories(directories);
             });
+          crossnote
+            .hasSummaryMD(selectedNotebook)
+            .then(exists => setHasSummaryMD(exists));
           setNotebookTagNode(crossnote.getNotebookTagNodeFromNotes(newNotes));
           return newNotes;
         });
@@ -388,7 +401,7 @@ function useCrossnoteContainer(initialState: InitialState) {
         });
       }
     },
-    [crossnote]
+    [crossnote, selectedNotebook]
   );
 
   const updateNotebookTagNode = useCallback(() => {
@@ -463,6 +476,7 @@ function useCrossnoteContainer(initialState: InitialState) {
         path: ".",
         children: []
       });
+      setHasSummaryMD(false);
       setNotebookTagNode({
         name: ".",
         path: ".",
@@ -478,6 +492,7 @@ function useCrossnoteContainer(initialState: InitialState) {
       setNotebookDirectories(
         await crossnote.getNotebookDirectoriesFromNotes(notes)
       );
+      setHasSummaryMD(await crossnote.hasSummaryMD(selectedNotebook));
       setNotebookTagNode(crossnote.getNotebookTagNodeFromNotes(notes));
       setSelectedNote(null);
       setIsLoadingNotebook(false);
@@ -532,6 +547,8 @@ function useCrossnoteContainer(initialState: InitialState) {
         notes = notebookNotes.filter(note => {
           return note.config.encryption;
         });
+      } else if (selectedSection.type === SelectedSectionType.Wiki) {
+        // Do nothing here
       } else {
         // SelectedSectionType.Directory
         if (includeSubdirectories) {
@@ -572,14 +589,22 @@ function useCrossnoteContainer(initialState: InitialState) {
       } else if (orderBy === OrderBy.Title) {
         if (orderDirection === OrderDirection.DESC) {
           notes.sort((a, b) =>
-            getHeaderFromMarkdown(b.markdown).localeCompare(
-              getHeaderFromMarkdown(a.markdown)
+            (
+              (b.config.encryption && b.config.encryption.title) ||
+              getHeaderFromMarkdown(b.markdown)
+            ).localeCompare(
+              (a.config.encryption && a.config.encryption.title) ||
+                getHeaderFromMarkdown(a.markdown)
             )
           );
         } else {
           notes.sort((a, b) =>
-            getHeaderFromMarkdown(a.markdown).localeCompare(
-              getHeaderFromMarkdown(b.markdown)
+            (
+              (a.config.encryption && a.config.encryption.title) ||
+              getHeaderFromMarkdown(a.markdown)
+            ).localeCompare(
+              (b.config.encryption && b.config.encryption.title) ||
+                getHeaderFromMarkdown(b.markdown)
             )
           );
         }
@@ -652,7 +677,10 @@ function useCrossnoteContainer(initialState: InitialState) {
     orderBy,
     setOrderBy,
     orderDirection,
-    setOrderDirection
+    setOrderDirection,
+    hasSummaryMD,
+    wikiTOCElement,
+    setWikiTOCElement
   };
 }
 

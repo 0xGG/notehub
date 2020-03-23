@@ -19,11 +19,15 @@ import clsx from "clsx";
 import React, { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { PlusCircle } from "mdi-material-ui";
-import { CrossnoteContainer } from "../containers/crossnote";
+import {
+  CrossnoteContainer,
+  SelectedSectionType
+} from "../containers/crossnote";
 import Editor from "../components/Editor";
 import AddNotebookDialog from "../components/AddNotebookDialog";
 import NotebookTreeView from "../components/NotebookTreeView";
 import NotesPanel from "../components/NotesPanel";
+import WikiPanel from "../components/WikiPanel";
 
 const drawerWidth = 200;
 const notesPanelWidth = 350;
@@ -199,11 +203,16 @@ export function Home(props: Props) {
     </div>
   );
 
-  const notesPanel = (
-    <Paper className={clsx(classes.notesPanel)} id={"notes-panel"}>
-      <NotesPanel toggleDrawer={toggleDrawer}></NotesPanel>
-    </Paper>
-  );
+  const notesPanel =
+    crossnoteContainer.selectedSection.type !== SelectedSectionType.Wiki ? (
+      <Paper className={clsx(classes.notesPanel)} id={"notes-panel"}>
+        <NotesPanel toggleDrawer={toggleDrawer}></NotesPanel>
+      </Paper>
+    ) : (
+      <Paper className={clsx(classes.notesPanel)} id={"notes-panel"}>
+        <WikiPanel toggleDrawer={toggleDrawer}></WikiPanel>
+      </Paper>
+    );
 
   return (
     <Box className={clsx(classes.page)}>

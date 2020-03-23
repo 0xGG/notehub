@@ -659,20 +659,14 @@ export default function Editor(props: Props) {
 
   useEffect(() => {
     if (!editor || !note) return;
-    const updateEditorMarkdown = () => {
-      const readOnly = editor.getOption("readOnly");
-      editor.setOption("readOnly", true);
-      editor.setValue(isDecrypted ? note.markdown : "🔐 encrypted");
-      editor.setOption("readOnly", readOnly);
-    };
     if (editorMode === EditorMode.VickyMD) {
       VickyMD.switchToHyperMD(editor);
       editor.getWrapperElement().style.display = "block";
-      updateEditorMarkdown();
+      editor.refresh();
     } else if (editorMode === EditorMode.SourceCode) {
       VickyMD.switchToNormal(editor);
       editor.getWrapperElement().style.display = "block";
-      updateEditorMarkdown();
+      editor.refresh();
     } else {
       editor.getWrapperElement().style.display = "none";
     }
@@ -950,6 +944,38 @@ export default function Editor(props: Props) {
       setEditorMode(EditorMode.Preview);
     }
   }, [needsToPrint, editorMode, note, editor, previewElement]);
+
+  // Wiki TOC Render
+  useEffect(() => {
+    if (
+      note &&
+      editor &&
+      note.filePath === "SUMMARY.md" &&
+      crossnoteContainer.wikiTOCElement
+    ) {
+      const handleLinksClickEvent = (preview: HTMLElement) => {
+        // Handle link click event
+        const links = preview.getElementsByTagName("A");
+        for (let i = 0; i < links.length; i++) {
+          const link = links[i] as HTMLAnchorElement;
+          link.onclick = event => {
+            event.preventDefault();
+            openURL(link.getAttribute("href"));
+          };
+        }
+      };
+      const onChangesHandler = () => {
+        renderPreview(crossnoteContainer.wikiTOCElement, editor.getValue());
+        handleLinksClickEvent(crossnoteContainer.wikiTOCElement);
+      };
+      editor.on("changes", onChangesHandler);
+      renderPreview(crossnoteContainer.wikiTOCElement, editor.getValue());
+      handleLinksClickEvent(crossnoteContainer.wikiTOCElement);
+      return () => {
+        editor.off("changes", onChangesHandler);
+      };
+    }
+  }, [note, editor, crossnoteContainer.wikiTOCElement]);
 
   if (!note) {
     return (
