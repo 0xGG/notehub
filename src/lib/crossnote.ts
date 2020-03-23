@@ -1110,6 +1110,13 @@ ${markdown}`;
     return rootTagNode;
   }
 
+  public async hasSummaryMD(notebook: Notebook): Promise<boolean> {
+    if (!notebook || !notebook.dir) {
+      return false;
+    }
+    return await this.exists(path.resolve(notebook.dir, "SUMMARY.md"));
+  }
+
   private getDefaultNotebookNameFromGitURL(gitURL: string) {
     const i = gitURL.lastIndexOf("/");
     return gitURL.slice(i + 1).replace(/\.git/, "");

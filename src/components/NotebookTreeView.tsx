@@ -338,6 +338,37 @@ export default function NotebookTreeView(props: Props) {
         >
           {constructDirectoryTreeItems(crossnoteContainer.notebookDirectories)}
         </TreeItem>
+        {crossnoteContainer.hasSummaryMD ? (
+          <TreeItem
+            nodeId={"wiki"}
+            classes={{
+              root: classes.treeItemRoot,
+              content: classes.treeItemContent,
+              expanded: classes.treeItemExpanded,
+              group: classes.treeItemGroup,
+              label: classes.treeItemLabel
+            }}
+            label={
+              <Box
+                onClick={() => {
+                  crossnoteContainer.setSelectedSection({
+                    type: SelectedSectionType.Wiki
+                  });
+                }}
+                className={clsx(classes.treeItemLabelRoot)}
+              >
+                <span role="img" aria-label="wiki">
+                  📖
+                </span>
+                <Typography className={clsx(classes.treeItemLabelText)}>
+                  {"wiki"}
+                </Typography>
+              </Box>
+            }
+          ></TreeItem>
+        ) : (
+          <TreeItem nodeId={"wiki"}></TreeItem>
+        )}
         <TreeItem
           nodeId={"tagged-notes"}
           classes={{

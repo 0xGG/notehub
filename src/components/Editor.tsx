@@ -945,6 +945,38 @@ export default function Editor(props: Props) {
     }
   }, [needsToPrint, editorMode, note, editor, previewElement]);
 
+  // Wiki TOC Render
+  useEffect(() => {
+    if (
+      note &&
+      editor &&
+      note.filePath === "SUMMARY.md" &&
+      crossnoteContainer.wikiTOCElement
+    ) {
+      const handleLinksClickEvent = (preview: HTMLElement) => {
+        // Handle link click event
+        const links = preview.getElementsByTagName("A");
+        for (let i = 0; i < links.length; i++) {
+          const link = links[i] as HTMLAnchorElement;
+          link.onclick = event => {
+            event.preventDefault();
+            openURL(link.getAttribute("href"));
+          };
+        }
+      };
+      const onChangesHandler = () => {
+        renderPreview(crossnoteContainer.wikiTOCElement, editor.getValue());
+        handleLinksClickEvent(crossnoteContainer.wikiTOCElement);
+      };
+      editor.on("changes", onChangesHandler);
+      renderPreview(crossnoteContainer.wikiTOCElement, editor.getValue());
+      handleLinksClickEvent(crossnoteContainer.wikiTOCElement);
+      return () => {
+        editor.off("changes", onChangesHandler);
+      };
+    }
+  }, [note, editor, crossnoteContainer.wikiTOCElement]);
+
   if (!note) {
     return (
       <Box className={clsx(classes.editorPanel, "editor-panel")}>
