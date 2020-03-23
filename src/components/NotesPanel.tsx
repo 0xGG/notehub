@@ -25,9 +25,7 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  Divider,
-  ListItemSecondaryAction,
-  ListItemAvatar
+  Divider
 } from "@material-ui/core";
 import {
   Magnify,
@@ -35,7 +33,6 @@ import {
   Settings,
   Menu as MenuIcon,
   SortVariant,
-  Check,
   SortDescending,
   SortAscending
 } from "mdi-material-ui";
