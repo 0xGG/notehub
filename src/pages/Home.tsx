@@ -208,7 +208,7 @@ export function Home(props: Props) {
   return (
     <Box className={clsx(classes.page)}>
       <CssBaseline></CssBaseline>
-      <nav className={classes.drawer}>
+      <nav className={clsx(classes.drawer, "drawer")}>
         {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
         <Hidden smUp implementation="css">
           <Drawer
