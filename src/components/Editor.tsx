@@ -21,7 +21,8 @@ import {
   IconButton,
   Popover,
   List,
-  ListItem
+  ListItem,
+  Hidden
 } from "@material-ui/core";
 import {
   Editor as CodeMirrorEditor,
@@ -953,6 +954,22 @@ export default function Editor(props: Props) {
   if (!note) {
     return (
       <Box className={clsx(classes.editorPanel, "editor-panel")}>
+        <Hidden smUp>
+          <Box className={clsx(classes.topPanel)}>
+            <Box className={clsx(classes.row)}>
+              <ButtonGroup className={clsx(classes.backBtn)}>
+                <Button
+                  className={clsx(classes.controlBtn)}
+                  onClick={() => {
+                    crossnoteContainer.setDisplayMobileEditor(false);
+                  }}
+                >
+                  <ChevronLeft></ChevronLeft>
+                </Button>
+              </ButtonGroup>
+            </Box>
+          </Box>
+        </Hidden>
         <Button
           style={{
             margin: "0 auto",
@@ -960,6 +977,8 @@ export default function Editor(props: Props) {
             position: "relative"
           }}
           onClick={() => crossnoteContainer.createNewNote()}
+          disabled={crossnoteContainer.isLoadingNotebook}
+          variant={"outlined"}
         >
           <Typography>{"📝 Create a note"}</Typography>
         </Button>
