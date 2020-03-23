@@ -208,7 +208,7 @@ export function Home(props: Props) {
   return (
     <Box className={clsx(classes.page)}>
       <CssBaseline></CssBaseline>
-      <nav className={classes.drawer}>
+      <nav className={clsx(classes.drawer, "drawer")}>
         {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
         <Hidden smUp implementation="css">
           <Drawer
@@ -242,15 +242,10 @@ export function Home(props: Props) {
         <Paper
           className={clsx(classes.editorPanel, "editor-panel")}
           style={{
-            display:
-              crossnoteContainer.displayMobileEditor &&
-              crossnoteContainer.selectedNote &&
-              "block"
+            display: crossnoteContainer.displayMobileEditor && "block"
           }}
         >
-          {crossnoteContainer.selectedNote && (
-            <Editor note={crossnoteContainer.selectedNote}></Editor>
-          )}
+          <Editor note={crossnoteContainer.selectedNote}></Editor>
         </Paper>
       </Box>
       <AddNotebookDialog

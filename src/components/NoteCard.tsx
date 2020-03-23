@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import clsx from "clsx";
 import { CrossnoteContainer } from "../containers/crossnote";
-import { Box, Typography, ButtonBase } from "@material-ui/core";
+import { Box, Typography, ButtonBase, Tooltip } from "@material-ui/core";
 import { Note } from "../lib/crossnote";
 import {
   getHeaderFromMarkdown,
@@ -12,6 +12,7 @@ import {
 import { formatDistanceStrict } from "date-fns/esm";
 import { useTranslation } from "react-i18next";
 import { Pin } from "mdi-material-ui";
+import { formatRelative } from "date-fns";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -159,7 +160,40 @@ export default function NoteCard(props: Props) {
       }}
     >
       <Box className={clsx(classes.leftPanel)}>
-        <Typography className={clsx(classes.duration)}>{duration}</Typography>
+        <Tooltip
+          title={
+            <>
+              <p>
+                {t("general/created-at") +
+                  " " +
+                  formatRelative(
+                    new Date(note.config.createdAt),
+                    new Date() /*{
+                    locale: languageCodeToDateFNSLocale(
+                      crossnoteContainer.viewer.language
+                    )
+                  }*/
+                  )}
+              </p>
+              <p>
+                {t("general/modified-at") +
+                  " " +
+                  formatRelative(
+                    new Date(note.config.modifiedAt),
+                    new Date() /*{
+                      locale: languageCodeToDateFNSLocale(
+                        crossnoteContainer.viewer.language
+                      )
+                    }*/
+                  )}
+              </p>
+            </>
+          }
+          arrow
+        >
+          <Typography className={clsx(classes.duration)}>{duration}</Typography>
+        </Tooltip>
+
         {note.config.pinned && <Pin className={clsx(classes.pin)}></Pin>}
       </Box>
       <Box className={clsx(classes.rightPanel)}>
