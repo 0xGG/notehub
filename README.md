@@ -1,5 +1,8 @@
 # Notehub
 
+**Archived and no longer maintained**.  
+The project will get merged into the crossnote project soon.
+
 http://0xgg.github.io/notehub/
 
 An experimental markdown note taking pwa that supports **offline editing** as well as **git** repository push&pull with zero server dependencies.
